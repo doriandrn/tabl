@@ -1,10 +1,25 @@
 {
   "name": "datatablez",
-  "version": "0.0.1",
-  "description": "Modern offline datatables, accesible & user-friendly",
-  "main": "dist/index.js",
-  "repository": "https://github.com/doriandrn/datatablez.git",
-  "author": "<dorian.snaz@gmail.com>",
-  "license": "MIT",
-  "private": true
+  "version": "1.0.0",
+  "description": "Datatable",
+  "author": "Dorian Tudorache",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt",
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "generate": "nuxt generate",
+    "lint": "eslint --ext .js,.vue --ignore-path .gitignore .",
+    "precommit": "npm run lint"
+  },
+  "dependencies": {
+    "nuxt": "^2.0.0"
+  },
+  "devDependencies": {
+    "babel-eslint": "^10.0.1",
+    "eslint": "^4.19.1",
+    "eslint-friendly-formatter": "^4.0.1",
+    "eslint-loader": "^2.1.1",
+    "eslint-plugin-vue": "^4.0.0"
+  }
 }
