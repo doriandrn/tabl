@@ -1,0 +1,10 @@
+{
+  "name": "datatablez",
+  "version": "0.0.1",
+  "description": "Modern offline datatables, accesible & user-friendly",
+  "main": "dist/index.js",
+  "repository": "https://github.com/doriandrn/datatablez.git",
+  "author": "<dorian.snaz@gmail.com>",
+  "license": "MIT",
+  "private": true
+}
