@@ -13,13 +13,33 @@
     "precommit": "npm run lint"
   },
   "dependencies": {
-    "nuxt": "^2.0.0"
+    "mobx": "^5.9.0",
+    "mobx-vue": "^2.0.8",
+    "nuxt": "^2.4.3",
+    "pug": "^2.0.3",
+    "pug-plain-loader": "^1.0.0",
+    "rxdb": "^8.0.5",
+    "rxjs": "^6.4.0",
+    "stylus": "^0.54.5",
+    "stylus-loader": "^3.0.2",
+    "vue-class-component": "^6.3.2"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-decorators": "^7.3.0",
+    "@types/node": "^11.9.4",
     "babel-eslint": "^10.0.1",
-    "eslint": "^4.19.1",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-decorators-legacy": "^1.3.5",
+    "eslint": "^5.14.0",
     "eslint-friendly-formatter": "^4.0.1",
-    "eslint-loader": "^2.1.1",
-    "eslint-plugin-vue": "^4.0.0"
+    "eslint-loader": "^2.1.2",
+    "eslint-plugin-vue": "^5.2.1",
+    "nuxt-class-component": "^1.2.1",
+    "nuxt-property-decorator": "^2.0.1",
+    "pouchdb-adapter-memory": "^7.0.0",
+    "rxcollection-subscriber": "^1.0.1",
+    "ts-loader": "^5.3.3",
+    "typescript": "^3.3.3",
+    "vue": "^2.6.6"
   }
 }

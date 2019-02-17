@@ -1,33 +1,119 @@
-<template>
-  <section class="container">
-    <div>
-      <app-logo/>
-      <h1 class="title">
-        datatablez
-      </h1>
-      <h2 class="subtitle">
-        Datatable
-      </h2>
-      <div class="links">
-        <a
-          href="https://nuxtjs.org/"
-          target="_blank"
-          class="button--green">Documentation</a>
-        <a
-          href="https://github.com/nuxt/nuxt.js"
-          target="_blank"
-          class="button--grey">GitHub</a>
-      </div>
-    </div>
-  </section>
+<template lang="pug">
+  section.file-table
+    input(placeholder="zable title")
+    p(v-if="loading") loading
+    table.data-table(v-else)
+      thead
+        th(v-for="i in 3 + 1")
+          input(@change="setHeader(i, $event.target.value)")
+        th
+          input
+      tbody
+        tr
+          td
+            input
+          td
+            input
+
 </template>
 
-<script>
-import AppLogo from '~/components/AppLogo.vue'
+<script lang="ts">
+import { observable, reaction } from 'mobx'
+import { Observer } from 'mobx-vue'
+import { Component, Vue } from 'nuxt-property-decorator'
+import Subscriber from 'rxcollection-subscriber'
+import { RxDatabase, RxCollection, create, plugin } from 'rxdb';
 
-export default {
-  components: {
-    AppLogo
+plugin(require('pouchdb-adapter-memory'))
+
+const env = process.env.NODE_ENV
+
+const cols = {
+  headers: {
+    name: 'headers',
+    schema: {
+      title: 'header',
+      version: 0,
+      type: 'object',
+      properties: {
+        index: {
+          type: 'string',
+          primary: true
+        },
+        name: { type: 'string' }
+      },
+      required: ['index', 'name']
+    }
+  },
+  contents: {
+    name: 'contents',
+    schema: {
+      title: 'item',
+      version: 0,
+      type: 'object',
+      properties: {
+        header: {
+          ref: 'headers',
+          // primary: true,
+          type: 'string',
+          index: true
+        },
+        content: { type: 'string' }
+      },
+      required: ['header']
+    }
+  }
+}
+
+let colsCount: number = 0
+let collections: { [k: string]: RxCollection } = {}
+let db: RxDatabase
+
+@Component({
+  props: {}
+})
+export default class Zable extends Vue {
+  loading = true
+  headers = []
+  contents = []
+
+  async asyncData () {
+
+    db = await create({
+      name: `zable_${Date.now()}`,
+      adapter: 'memory',
+      ignoreDuplicate: true
+    })
+
+    await Promise.all(Object.keys(cols).map(col => db.collection(cols[col])))
+
+    collections = db.collections
+    window.db = db
+  }
+
+  mounted () {
+    this.loading = false
+    const { headers, contents } = collections
+
+    const headersMain = new Subscriber(headers)
+    window.headersMain = headersMain
+    window.contentsMain = new Subscriber(contents)
+
+    reaction(() => ({ ...headersMain.ids }), (ids) => {
+      console.log('newids', ids)
+      this.headers = headersMain.ids
+    })
+  }
+
+  beforeDestroy () {
+    db.destroy()
+  }
+
+  setHeader (index: number, value: string) {
+    collections.headers.upsert({
+      name: value,
+      index: String(index)
+    })
   }
 }
 </script>
