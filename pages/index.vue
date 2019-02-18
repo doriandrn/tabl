@@ -4,21 +4,23 @@
     p(v-if="loading") loading
     table.data-table(v-else)
       thead
-        th(v-for="i in 3 + 1")
-          input(@change="setHeader(i, $event.target.value)")
-        th
-          input
+        th(v-for="i in headers.length + 1")
+          input(
+            @change=  "setHeader(i, $event.target.value)"
+            :value=   "headersVals[i - 1]"
+          )
       tbody
-        tr
-          td
-            input
-          td
-            input
-
+        tr(v-for="j in contents.length + 1")
+          td(v-for="i in headers.length + 1")
+            input(
+              @change= "setContent(j, { [i - 1]: $event.target.value })"
+              :value=  "contentsVals[j - 1] ? contentsVals[j - 1][i - 1] : undefined"
+            )
+    p {{ headers.length }}
 </template>
 
 <script lang="ts">
-import { observable, reaction } from 'mobx'
+import { observable, reaction, toJS } from 'mobx'
 import { Observer } from 'mobx-vue'
 import { Component, Vue } from 'nuxt-property-decorator'
 import Subscriber from 'rxcollection-subscriber'
@@ -53,12 +55,12 @@ const cols = {
       type: 'object',
       properties: {
         header: {
-          ref: 'headers',
-          // primary: true,
+          // ref: 'headers',
+          primary: true,
           type: 'string',
-          index: true
+          // index: true
         },
-        content: { type: 'string' }
+        content: { type: 'object' }
       },
       required: ['header']
     }
@@ -68,14 +70,31 @@ const cols = {
 let colsCount: number = 0
 let collections: { [k: string]: RxCollection } = {}
 let db: RxDatabase
+const subscribers = {}
 
 @Component({
-  props: {}
+  props: {},
+  computed: {
+    headersVals () {
+      return this.headers.ids.map(id => this.headers.items[Number(id)].name)
+    },
+    contentsVals () {
+      return this.contents.ids.map(id => this.contents.items[Number(id)].content)
+    }
+  }
 })
 export default class Zable extends Vue {
   loading = true
-  headers = []
-  contents = []
+  headers = {
+    items: {},
+    ids: [],
+    length: 0
+  }
+  contents = {
+    items: {},
+    ids: [],
+    length: 0
+  }
 
   async asyncData () {
 
@@ -88,20 +107,30 @@ export default class Zable extends Vue {
     await Promise.all(Object.keys(cols).map(col => db.collection(cols[col])))
 
     collections = db.collections
-    window.db = db
+    if (env === 'dev') {
+      window.db = db
+      window.subscribers = subscribers
+    }
   }
 
   mounted () {
     this.loading = false
-    const { headers, contents } = collections
 
-    const headersMain = new Subscriber(headers)
-    window.headersMain = headersMain
-    window.contentsMain = new Subscriber(contents)
+    subscribers.headers = new Subscriber(collections.headers)
+    subscribers.contents = new Subscriber(collections.contents)
 
-    reaction(() => ({ ...headersMain.ids }), (ids) => {
-      console.log('newids', ids)
-      this.headers = headersMain.ids
+    const { headers, contents } = subscribers
+
+    reaction(() => [...headers.ids], () => {
+      this.headers.items = headers.items
+      this.headers.ids = headers.ids
+      this.headers.length = headers.length
+    })
+
+    reaction(() => [...contents.ids], () => {
+      this.contents.items = contents.items
+      this.contents.ids = contents.ids
+      this.contents.length = contents.length
     })
   }
 
@@ -114,6 +143,20 @@ export default class Zable extends Vue {
       name: value,
       index: String(index)
     })
+  }
+
+  async setContent (index, content: {}) {
+    // await subscribers.contents.updates
+    const curValue = toJS(subscribers.contents.items[String(index)])
+    content = toJS(curValue && curValue.content ? Object.assign(curValue.content, { ... content }) : content)
+    console.info(curValue, content)
+
+    await collections.contents.upsert({
+      header: String(index),
+      content
+    })
+
+    // await subscribers.contents.updates
   }
 }
 </script>
