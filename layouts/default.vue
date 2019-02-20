@@ -1,7 +1,16 @@
-<template>
-  <div>
-    <nuxt/>
-  </div>
+<template lang="pug">
+#tableapp
+  header
+    .container__inner
+      h1 kewllogo
+
+  main
+    .container__inner
+      nuxt
+
+  footer
+    .container__inner
+      p footer
 </template>
 
 <style lang="stylus">
@@ -26,5 +35,31 @@ input {
   margin: 0;
 }
 
+button
+  border 0
+  background transparent
+
+#tableapp
+  display flex
+  flex-flow column nowrap
+  min-height 100vh
+  align-content flex-start
+
+  header
+    flex 0 0 48px
+    background #fafafa
+
+  main
+    flex 1 0 90%
+
+  .dev
+    margin-top auto
+
+  header
+    margin-bottom auto
+    margin-top 0
+
+  footer
+    margin-top auto
 </style>
 
