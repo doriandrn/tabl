@@ -9270,9 +9270,9 @@ run-queue@^1.0.0, run-queue@^1.0.3:
     aproba "^1.1.1"
 
 rxcollection-subscriber@^1.0.1:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/rxcollection-subscriber/-/rxcollection-subscriber-1.0.6.tgz#98804ead8f44d58921a284132a8448ce93862930"
-  integrity sha512-QPJ3WF6J9uGhg74KWWx1h34n90lltP5qPMFRIXAsnrCYA52WdxB3q9JHWGKBGL2p/ZpUSjHunShNeJQ0+jeYJA==
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/rxcollection-subscriber/-/rxcollection-subscriber-1.0.7.tgz#616d236bf9acabf0b0f538680c3fb2f6f1c5504a"
+  integrity sha512-sI/p84CqYPL5PdsyzGayS2+2fDprhgspUAOpnrYcpZkni+SdsDkuBJT2xiXMNa7wIhDjkKffb1I8cf3LhSXNbA==
   dependencies:
     mobx "^5.9.0"
 
