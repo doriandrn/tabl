@@ -2,7 +2,9 @@
 .table(
   data-table
 )
-  input(placeholder="Please name this table...")
+  input(
+    placeholder=  "Please name this table..."
+  )
 
   .choice
     importer(
@@ -125,7 +127,14 @@ const subscribers = {}
   },
   watch: {
     search: (val) => {
-      console.log(val)
+      const { length } = subscribers.headers
+      const $or = []
+      const query = { $or }
+      for (let i = 1; i <= length; i++) {
+        $or.push({ [`c${i}`]: { $regex: `.*${val}.*` } })
+      }
+      // console.log('q', query)
+      subscribers.contents.criteria.filter = { ...query }
     }
   }
 })
@@ -186,14 +195,11 @@ export default class DataTable extends Vue {
       this.headers.length = headers.length
     })
 
-    console.log('ONCE')
-
     reaction(() => ({ ...contents.items }), async (changes) => {
       this.contents.items = contents.items
       this.contents.ids = contents.ids
       this.contents.length = contents.length
       this.criteria = contents.criteria
-      console.error('jit janjed', changes)
     })
 
     this.$emit('loaded')
@@ -212,7 +218,6 @@ export default class DataTable extends Vue {
     const doc = await collections.contents[_id ? 'upsert' : 'insert']({ ...content })
     if (!_id) _id = doc._id
     this.last = _id
-    console.error('JANJED')
   }
 
   sort (index) {
