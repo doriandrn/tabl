@@ -266,6 +266,8 @@ headerfonts()
         &:not(:last-child)
           margin-right 12px
 
+lucian = black
+
 table
   border 0
   padding 40px
