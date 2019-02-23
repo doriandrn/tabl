@@ -27,7 +27,9 @@ module.exports = {
     ** Run ESLint on save
     */
     extend (config, { isDev, isClient }) {
-
+      config.node = {
+        fs: 'empty'
+      }
     }
   }
 }

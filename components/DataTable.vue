@@ -4,51 +4,53 @@
 )
   input(placeholder="Please name this table...")
 
-  form.import(v-if="headers.length === 0")
-    label(for="import") Import
-    input(type="file" name="import" :accept="knownReadFormats")
-    input(type="submit")
-    p.meta known formats:
+  .choice
+    importer(
+      v-if=   "contents.length < 1"
+      :noHeaders= "Boolean(headers.length)"
+    )
 
-  .table-actions(v-else)
-    .right
-      input(type="search", v-model="search")
-      button print
-      button share
-      button export
-      button settings
+    .table-actions(v-else)
+      .right
+        input(type="search", v-model="search")
+        button print
+        button share
+        button export
+        button settings
 
-  table(:class="{ fetching }" cellspacing=0)
-    thead
-      th(v-for="i in headers.length + 1")
-        input(
-          @change=  "setHeader(i, $event.target.value)"
-          :value=   "headersVals[i - 1]"
-        )
-        span(
-          @click=   "sort(i)"
-        ) {{ headersVals [i - 1] }}
-    tbody
-      tr(
-        v-for=  "j in contents.length + 1"
-        :class= "{ new: j === contents.length + 1, last: last === contents.ids[j - 1] }"
-      )
-        td(v-for="i in headers.length + 1")
+    table(:class="{ fetching }" cellspacing=0)
+      thead
+        th(v-for="i in headers.length + 1")
           input(
-            :tabindex = "j <= contents.length && i <= headers.length ? j * 100 + i : -1"
-            @change= "setContent(contents.ids[j - 1], { [`c${i}`]: $event.target.value })"
-            :value=  "contents.items[contents.ids[j - 1]] ? contents.items[contents.ids[j - 1]][`c${i}`] : undefined"
+            @change=  "setHeader(i, $event.target.value)"
+            :value=   "headersVals[i - 1]"
           )
-    tfoot
-      tr
-        td.meta {{ contents.length }} of total
+          span(
+            @click=   "sort(i)"
+          ) {{ headersVals[i - 1] }}
+      tbody
+        tr.new
+        tr(
+          v-for=  "j in contents.length + 1"
+          :class= "{ last: last === contents.ids[j - 1] }"
+        )
+          cell(
+            v-for=        "i in headers.length + 1"
+            :key=         "`${contents.ids[j - 1]}${i}`"
+            :reference=   "contents.ids[j - 1] || ''"
+            :value=       "cell(contents.ids[j - 1], i)"
+            @input=       "setContent(contents.ids[j - 1], { [`c${i}`]: $event.target.value })"
+          )
+      tfoot
+        tr
+          td.meta(v-if="contents.length") {{ contents.length }} of total
 
-  p(v-if="fetching") fetching!
+    p(v-if="fetching") fetching!
 
-  button(
-    v-if=   "contents.length === criteria.limit"
-    @click= "increaseIndex"
-  ) more!
+    button(
+      v-if=   "contents.length === criteria.limit"
+      @click= "increaseIndex"
+    ) more!
 </template>
 
 <script lang="ts">
@@ -57,6 +59,10 @@ import { Observer } from 'mobx-vue'
 import { Component, Vue } from 'nuxt-property-decorator'
 import Subscriber from 'rxcollection-subscriber'
 import { RxDatabase, RxCollection, create, plugin } from 'rxdb';
+
+import importer from '~/components/import'
+import cell from '~/components/cell'
+
 plugin(require('pouchdb-adapter-memory'))
 
 const cols = {
@@ -112,6 +118,15 @@ const subscribers = {}
       type: Number,
       default: 10
     }
+  },
+  components: {
+    importer,
+    cell
+  },
+  watch: {
+    search: (val) => {
+      console.log(val)
+    }
   }
 })
 export default class DataTable extends Vue {
@@ -125,10 +140,19 @@ export default class DataTable extends Vue {
     ids: [],
     length: 0
   }
+
   contents = {
     items: {},
     ids: [],
     length: 0
+  }
+
+  get cell () {
+    return (id, column) => this.contents.items[id] ? this.contents.items[id][`c${column}`] || '' : ''
+  }
+
+  set cell (cellData) {
+    console.error('cellData', cellData)
   }
 
   async mounted () {
@@ -162,11 +186,14 @@ export default class DataTable extends Vue {
       this.headers.length = headers.length
     })
 
-    reaction(() => ({ ...contents.items }), (changes) => {
+    console.log('ONCE')
+
+    reaction(() => ({ ...contents.items }), async (changes) => {
       this.contents.items = contents.items
       this.contents.ids = contents.ids
       this.contents.length = contents.length
       this.criteria = contents.criteria
+      console.error('jit janjed', changes)
     })
 
     this.$emit('loaded')
@@ -182,30 +209,29 @@ export default class DataTable extends Vue {
   async setContent (_id, content: {}) {
     const curValue = toJS(subscribers.contents.items[_id])
     content = toJS(curValue ? Object.assign(curValue, { ... content }) : content)
-
     const doc = await collections.contents[_id ? 'upsert' : 'insert']({ ...content })
     if (!_id) _id = doc._id
     this.last = _id
+    console.error('JANJED')
   }
 
   sort (index) {
     const { criteria } = subscribers.contents
     const active = criteria.sort[`c${index}`] > 0
     criteria.sort = { [`c${index}`]: active ? -1 : 1 }
-    console.log({ ...criteria.sort }, active)
   }
 
   increaseIndex () {
     subscribers.contents.criteria.index += 1
   }
 
+  select (id) {
+    subscribers.contents.select(id)
+  }
+
   beforeDestroy () {
     console.error('why woudl this shit happen now')
     db.destroy()
-  }
-
-  get knownReadFormats () {
-    return '.csv'
   }
 
   get searching () {
@@ -215,6 +241,9 @@ export default class DataTable extends Vue {
 </script>
 
 <style lang="stylus">
+cellY = 4px
+cellX = 8px
+
 headerfonts()
   font-size 16px
   line-height 24px
@@ -233,8 +262,8 @@ headerfonts()
           margin-right 12px
 
 table
-  background #f7f7f7
-  padding 24px
+  border 0
+  padding 40px
   width auto
 
   th
@@ -243,19 +272,34 @@ table
     margin 0
     position relative
     text-align left
+    border 1px solid rgba(black, .05)
+
+    &:not(:last-child)
+      border-right 0
+
+  td
+    border-top 0
 
   input
     border 0
-    padding 0
+    box-shadow none
+    padding: cellY cellX
     background transparent
+    width 100%
+
+    &:focus
+      outline 0
+      box-shadow 0
 
     &+span
       position absolute
-      left 0
-      top 0
+      left: 0
+      top: 0
+      padding: cellY cellX
       bottom 0
       z-index 1
       cursor pointer
+      user-select none
 
       headerfonts()
 
@@ -263,16 +307,14 @@ table
     &.new
       td
         background rgba(black, .05)
-        input
-          border 1px solid
 
     &.last
       td
-        background green
+        background rgba(#a0ff32, .05)
 
 thead
   th
-    border-bottom 1px solid #aaa
+    border-bottom-width 2px
 
     input
       headerfonts()
@@ -290,9 +332,16 @@ tfoot
   tr
     td
       padding-top 24px
+      border 0
 
 .import
-  padding 20px
-  border 1px solid
+  padding 32px
   margin-bottom 20px
+  background #fafafa
+  border-radius 15px
+  text-align center
+
+.choice
+  display flex
+  flex-flow column nowrap
 </style>
