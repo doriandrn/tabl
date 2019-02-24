@@ -8,11 +8,11 @@
 
   .choice
     importer(
-      v-if=   "contents.length < 1"
+      v-if=   "!hasContents"
       :noHeaders= "Boolean(headers.length)"
     )
 
-    .table-actions(v-else)
+    .table-actions
       .right
         input(type="search", v-model="search")
         button print
@@ -22,18 +22,32 @@
 
     table(:class="{ fetching }" cellspacing=0)
       thead
-        th(v-for="i in headers.length + 1")
+        th(
+          v-for="i in headers.length + 1"
+          :class= "{\
+            new: i === headers.length + 1 && !headersVals[i - 1],\
+            sortable: contents.length > 1,\
+            sort: criteria.sort && criteria.sort['c' + String(i)] !== undefined,\
+            reverse: criteria.sort && criteria.sort['c' + String(i)] === -1 }"
+        )
           input(
             @change=  "setHeader(i, $event.target.value)"
             :value=   "headersVals[i - 1]"
           )
           span(
+            v-if= "contents.length > 1"
             @click=   "sort(i)"
           ) {{ headersVals[i - 1] }}
       tbody
         tr.new
+          cell(
+            v-for=        "i in headers.length + 1"
+            :key=         "`new${i}`"
+            @input=       "setContent(undefined, { [`c${i}`]: $event.target.value }); value = null"
+            :value=       "null"
+          )
         tr(
-          v-for=  "j in contents.length + 1"
+          v-for=  "j in contents.length"
           :class= "{ last: last === contents.ids[j - 1] }"
         )
           cell(
@@ -87,7 +101,9 @@ const cols = {
       title: 'item',
       version: 0,
       type: 'object',
-      properties: {}
+      properties: {
+        addedAt: { type: 'number', index: true }
+      }
     }
   }
 }
@@ -101,6 +117,9 @@ const subscribers = {}
   computed: {
     headersVals () {
       return this.headers.ids.map(id => this.headers.items[Number(id)].name)
+    },
+    hasContents () {
+
     }
   },
   props: {
@@ -119,6 +138,10 @@ const subscribers = {}
     maxCols: {
       type: Number,
       default: 10
+    },
+    temporary: {
+      type: Boolean,
+      default: true
     }
   },
   components: {
@@ -133,8 +156,7 @@ const subscribers = {}
       for (let i = 1; i <= length; i++) {
         $or.push({ [`c${i}`]: { $regex: `.*${val}.*` } })
       }
-      // console.log('q', query)
-      subscribers.contents.criteria.filter = { ...query }
+      subscribers.contents.criteria.filter = query
     }
   }
 })
@@ -143,6 +165,7 @@ export default class DataTable extends Vue {
   criteria = {}
   last = ''
   search = ''
+  clear = ''
 
   headers = {
     items: {},
@@ -160,10 +183,6 @@ export default class DataTable extends Vue {
     return (id, column) => this.contents.items[id] ? this.contents.items[id][`c${column}`] || '' : ''
   }
 
-  set cell (cellData) {
-    console.error('cellData', cellData)
-  }
-
   async mounted () {
     for (let i = 1; i <= this.maxCols; i ++) {
       Object.assign(cols.contents.schema.properties, { [`c${i}`]: {
@@ -173,8 +192,8 @@ export default class DataTable extends Vue {
     }
 
     db = await create({
-      name: `zable_${Date.now()}`,
-      adapter: 'memory',
+      name: `tt_${this.id}_${Date.now()}`,
+      adapter: this.temporary ? 'memory' : 'idb',
       ignoreDuplicate: true
     })
 
@@ -183,11 +202,25 @@ export default class DataTable extends Vue {
     collections = db.collections
 
     subscribers.headers = new Subscriber(collections.headers)
-    subscribers.contents = new Subscriber(collections.contents, { progressivePaging: true })
+    subscribers.contents = new Subscriber(collections.contents, {
+      progressivePaging: true,
+      // criteria: {
+      //   sort: { addedAt: 1 }
+      // }
+    })
 
     const { headers, contents } = subscribers
 
-    reaction(() => contents.fetching, () => this.fetching = contents.fetching)
+    contents.criteria.sort = { addedAt: -1 }
+
+    reaction(() => contents.ids, () => {
+      // if (!done) return
+      this.fetching = contents.fetching
+      this.contents.items = contents.items
+      this.contents.ids = contents.ids
+      this.contents.length = contents.length
+      this.criteria = contents.criteria
+    })
 
     reaction(() => [...headers.ids], () => {
       this.headers.items = headers.items
@@ -195,12 +228,10 @@ export default class DataTable extends Vue {
       this.headers.length = headers.length
     })
 
-    reaction(() => ({ ...contents.items }), async (changes) => {
-      this.contents.items = contents.items
-      this.contents.ids = contents.ids
-      this.contents.length = contents.length
-      this.criteria = contents.criteria
-    })
+    // reaction(() => ({ ...contents.items }), async (changes) => {
+
+    //   console.log("FFS", changes)
+    // })
 
     this.$emit('loaded')
   }
@@ -214,7 +245,11 @@ export default class DataTable extends Vue {
 
   async setContent (_id, content: {}) {
     const curValue = toJS(subscribers.contents.items[_id])
-    content = toJS(curValue ? Object.assign(curValue, { ... content }) : content)
+    content = Object.assign(
+      {},
+      ...toJS(curValue ? Object.assign(curValue, { ... content }) : content),
+      { addedAt: Date.now() }
+    )
     const doc = await collections.contents[_id ? 'upsert' : 'insert']({ ...content })
     if (!_id) _id = doc._id
     this.last = _id
@@ -223,7 +258,8 @@ export default class DataTable extends Vue {
   sort (index) {
     const { criteria } = subscribers.contents
     const active = criteria.sort[`c${index}`] > 0
-    criteria.sort = { [`c${index}`]: active ? -1 : 1 }
+    const sortQuery = { [`c${index}`]: active ? -1 : 1 }
+    criteria.sort = sortQuery
   }
 
   increaseIndex () {
@@ -235,7 +271,8 @@ export default class DataTable extends Vue {
   }
 
   beforeDestroy () {
-    console.error('why woudl this shit happen now')
+    subscribers.headers.kill()
+    subscribers.contents.kill()
     db.destroy()
   }
 
@@ -298,18 +335,50 @@ table
       outline 0
       box-shadow 0
 
-    &+span
-      position absolute
-      left: 0
-      top: 0
-      padding: cellY cellX
-      bottom 0
-      z-index 1
-      cursor pointer
-      user-select none
+  th
+    &.sortable
+      input
+        padding-right 40px // loc ca user sa dea click pe mobil sa editeze
+        opacity 0
 
-      headerfonts()
+        &+span
+          position absolute
+          left: 0
+          top: 0
+          padding: cellY cellX
+          bottom 0
+          z-index 1
+          cursor pointer
+          user-select none
+          headerfonts()
 
+          &:after
+            content ''
+            position relative
+            background url('data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjE4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIxOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxwYXRoIGQ9Ik0wIDBoMjR2MjRIMFYweiIgZmlsbD0ibm9uZSIvPgogICAgPHBhdGggZD0iTTIwIDEybC0xLjQxLTEuNDFMMTMgMTYuMTdWNGgtMnYxMi4xN2wtNS41OC01LjU5TDQgMTJsOCA4IDgtOHoiIGZpbGw9IiM1NTU1NTUiLz4KPC9zdmc+')
+            background-size 100%
+            width 14px
+            height 14px
+            display inline-block
+            vertical-align middle
+            margin-left 10px
+            opacity 0
+            visibility hidden
+            transition transform .15s ease
+
+      &.sort
+      &:hover
+      &:focus
+        input
+          opacity 1
+          &+span
+            &:after
+              opacity 1
+              visibility visible
+
+      &.reverse
+        input+span:after
+          transform rotate(180deg)
   tr
     &.new
       td
@@ -325,15 +394,6 @@ thead
 
     input
       headerfonts()
-      margin-right 10px
-      opacity 0
-
-      &:hover
-      &:focus
-        opacity 1
-
-        &+span
-          opacity 0
 
 tfoot
   tr

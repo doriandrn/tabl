@@ -12,8 +12,7 @@ import { Component, Vue } from 'nuxt-property-decorator'
 @Component({
   props: {
     reference: {
-      type: String,
-      required: true
+      type: String
     },
     value: {
       type: String,
