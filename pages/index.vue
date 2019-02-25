@@ -1,12 +1,15 @@
 <template lang="pug">
 //- p(v-if="loading") loading
 section.file-table
-  data-table
+  data-table(
+    :writePermissions = "writePermissions"
+  )
+
 
   .dev(v-if="isDev")
-    h1 dev shit
-    label(for="viewOnly") view only
-    input(type="checkbox" name="viewOnly")
+    h1 DEV
+    label(for="viewOnly") write permissions
+    input(type="checkbox" name="viewOnly" v-model="writePermissions")
 
     button() add header
     button() add data row
@@ -25,6 +28,7 @@ const env = process.env.NODE_ENV
 })
 export default class Zable extends Vue {
   loading = true
+  writePermissions = false
 
   get isDev () {
     return env === 'development'
@@ -52,7 +56,8 @@ section
   color #666
 
 .dev
-  background teal
+  padding 30px
+  background rgba(teal, .1)
   > *
     margin 10px
 </style>

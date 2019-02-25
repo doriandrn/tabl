@@ -15,15 +15,22 @@
     .table-actions
       .right
         input(type="search", v-model="search")
+        input(type="number", v-model="criteria.limit")
         button print
         button share
         button export
         button settings
 
-    table(:class="{ fetching }" cellspacing=0)
+    h4(v-if=  "!hasContents && !writePermissions") This table has no data.
+
+    table(
+      v-else
+      :class=       "{ fetching }"
+      cellspacing=  0
+    )
       thead
         th(
-          v-for="i in headers.length + 1"
+          v-for="i in columnsLength"
           :class= "{\
             new: i === headers.length + 1 && !headersVals[i - 1],\
             sortable: contents.length > 1,\
@@ -31,6 +38,7 @@
             reverse: criteria.sort && criteria.sort['c' + String(i)] === -1 }"
         )
           input(
+            v-if=     "writePermissions"
             @change=  "setHeader(i, $event.target.value)"
             :value=   "headersVals[i - 1]"
           )
@@ -39,29 +47,29 @@
             @click=   "sort(i)"
           ) {{ headersVals[i - 1] }}
       tbody
-        tr.new
+        tr.new(v-if= "writePermissions")
           cell(
-            v-for=        "i in headers.length + 1"
+            v-for=        "i in columnsLength"
             :key=         "`new${i}`"
-            @input=       "setContent(undefined, { [`c${i}`]: $event.target.value }); value = null"
-            :value=       "null"
+            @input=       "setContent(undefined, { [`c${i}`]: $event.target.value });"
           )
         tr(
           v-for=  "j in contents.length"
           :class= "{ last: last === contents.ids[j - 1] }"
         )
           cell(
-            v-for=        "i in headers.length + 1"
+            v-for=        "i in columnsLength"
             :key=         "`${contents.ids[j - 1]}${i}`"
+            :editable=    "writePermissions"
             :reference=   "contents.ids[j - 1] || ''"
             :value=       "cell(contents.ids[j - 1], i)"
             @input=       "setContent(contents.ids[j - 1], { [`c${i}`]: $event.target.value })"
+            @click=       "activeColumn = `c${i}`"
           )
       tfoot
         tr
           td.meta(v-if="contents.length") {{ contents.length }} of total
-
-    p(v-if="fetching") fetching!
+          td.meta(v-if="fetching") fetching
 
     button(
       v-if=   "contents.length === criteria.limit"
@@ -108,10 +116,6 @@ const cols = {
   }
 }
 
-let colsCount: number = 0
-let collections: { [k: string]: RxCollection } = {}
-let db: RxDatabase
-const subscribers = {}
 
 @Component({
   computed: {
@@ -119,7 +123,11 @@ const subscribers = {}
       return this.headers.ids.map(id => this.headers.items[Number(id)].name)
     },
     hasContents () {
-
+      return this.headers.length && this.contents.length
+    },
+    columnsLength () {
+      const { length } = this.headers
+      return this.writePermissions ? length + 1 : length
     }
   },
   props: {
@@ -142,6 +150,10 @@ const subscribers = {}
     temporary: {
       type: Boolean,
       default: true
+    },
+    writePermissions: {
+      type: Boolean,
+      default: false
     }
   },
   components: {
@@ -149,14 +161,14 @@ const subscribers = {}
     cell
   },
   watch: {
-    search: (val) => {
-      const { length } = subscribers.headers
+    search: function (val) {
+      const { length } = this.subscribers.headers
       const $or = []
       const query = { $or }
       for (let i = 1; i <= length; i++) {
         $or.push({ [`c${i}`]: { $regex: `.*${val}.*` } })
       }
-      subscribers.contents.criteria.filter = query
+      this.criteria.filter = query
     }
   }
 })
@@ -166,6 +178,7 @@ export default class DataTable extends Vue {
   last = ''
   search = ''
   clear = ''
+  activeColumn = ''
 
   headers = {
     items: {},
@@ -183,6 +196,12 @@ export default class DataTable extends Vue {
     return (id, column) => this.contents.items[id] ? this.contents.items[id][`c${column}`] || '' : ''
   }
 
+  created () {
+    this.subscribers = {}
+    // let colsCount: number = 0
+    this.collections = {}
+  }
+
   async mounted () {
     for (let i = 1; i <= this.maxCols; i ++) {
       Object.assign(cols.contents.schema.properties, { [`c${i}`]: {
@@ -191,15 +210,17 @@ export default class DataTable extends Vue {
       }})
     }
 
-    db = await create({
+    this.db = await create({
       name: `tt_${this.id}_${Date.now()}`,
       adapter: this.temporary ? 'memory' : 'idb',
       ignoreDuplicate: true
     })
 
-    await Promise.all(Object.keys(cols).map(col => db.collection(cols[col])))
+    await Promise.all(Object.keys(cols).map(col => this.db.collection(cols[col])))
 
-    collections = db.collections
+    this.collections = this.db.collections
+
+    const { subscribers, collections } = this
 
     subscribers.headers = new Subscriber(collections.headers)
     subscribers.contents = new Subscriber(collections.contents, {
@@ -237,43 +258,45 @@ export default class DataTable extends Vue {
   }
 
   setHeader (index: number, value: string) {
-    collections.headers.upsert({
+    this.collections.headers.upsert({
       name: value,
       index: String(index)
     })
   }
 
   async setContent (_id, content: {}) {
-    const curValue = toJS(subscribers.contents.items[_id])
+    const curValue = toJS(this.subscribers.contents.items[_id])
     content = Object.assign(
       {},
       ...toJS(curValue ? Object.assign(curValue, { ... content }) : content),
       { addedAt: Date.now() }
     )
-    const doc = await collections.contents[_id ? 'upsert' : 'insert']({ ...content })
+    const doc = await this.collections.contents[_id ? 'upsert' : 'insert']({ ...content })
     if (!_id) _id = doc._id
     this.last = _id
+
+    this.$el
   }
 
   sort (index) {
-    const { criteria } = subscribers.contents
+    const { criteria } = this.subscribers.contents
     const active = criteria.sort[`c${index}`] > 0
     const sortQuery = { [`c${index}`]: active ? -1 : 1 }
     criteria.sort = sortQuery
   }
 
   increaseIndex () {
-    subscribers.contents.criteria.index += 1
+    this.subscribers.contents.criteria.index += 1
   }
 
   select (id) {
-    subscribers.contents.select(id)
+    this.subscribers.contents.select(id)
   }
 
   beforeDestroy () {
-    subscribers.headers.kill()
-    subscribers.contents.kill()
-    db.destroy()
+    this.subscribers.headers.kill()
+    this.subscribers.contents.kill()
+    this.db.destroy()
   }
 
   get searching () {

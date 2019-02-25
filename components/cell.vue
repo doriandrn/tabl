@@ -1,9 +1,12 @@
 <template lang="pug">
 td
   input(
+    v-if=     "editable"
     @change = "$emit('input', $event)"
+    @click=   "$emit('click')"
     :value=   "value"
   )
+  span(v-else) {{ value }}
 </template>
 
 <script lang="ts">
