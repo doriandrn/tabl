@@ -1,10 +1,11 @@
 <template lang="pug">
 td
-  input(
+  textarea(
     v-if=     "editable"
     @change = "$emit('input', $event)"
     @click=   "$emit('click')"
     :value=   "value"
+    rows= 1
   )
   span(v-else) {{ value }}
 </template>

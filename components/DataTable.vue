@@ -8,11 +8,11 @@
 
   .choice
     importer(
-      v-if=   "!hasContents"
+      v-if=   "!hasContents && writePermissions"
       :noHeaders= "Boolean(headers.length)"
     )
 
-    .table-actions
+    .table-actions(v-if="hasContents")
       .right
         input(type="search", v-model="search")
         input(type="number", v-model="criteria.limit")
@@ -88,34 +88,6 @@ import importer from '~/components/import'
 import cell from '~/components/cell'
 
 plugin(require('pouchdb-adapter-memory'))
-
-const cols = {
-  headers: {
-    name: 'headers',
-    schema: {
-      title: 'header',
-      version: 0,
-      type: 'object',
-      properties: {
-        index: { type: 'string', primary: true },
-        name: { type: 'string' }
-      },
-      required: ['index']
-    }
-  },
-  contents: {
-    name: 'contents',
-    schema: {
-      title: 'item',
-      version: 0,
-      type: 'object',
-      properties: {
-        addedAt: { type: 'number', index: true }
-      }
-    }
-  }
-}
-
 
 @Component({
   computed: {
@@ -196,13 +168,41 @@ export default class DataTable extends Vue {
     return (id, column) => this.contents.items[id] ? this.contents.items[id][`c${column}`] || '' : ''
   }
 
+  // vue privates
   created () {
     this.subscribers = {}
-    // let colsCount: number = 0
     this.collections = {}
   }
 
   async mounted () {
+    const cols = Object.assign({}, {
+      headers: {
+        name: 'headers',
+        schema: {
+          title: 'header',
+          version: 0,
+          type: 'object',
+          properties: {
+            index: { type: 'string', primary: true },
+            name: { type: 'string' }
+          },
+          required: ['index']
+        }
+      },
+      contents: {
+        name: 'contents',
+        schema: {
+          title: 'item',
+          version: 0,
+          type: 'object',
+          properties: {
+            addedAt: { type: 'number', index: true },
+            updatedAt: { type: 'number', index: true }
+          }
+        }
+      }
+    })
+
     for (let i = 1; i <= this.maxCols; i ++) {
       Object.assign(cols.contents.schema.properties, { [`c${i}`]: {
         type: 'string',
@@ -243,7 +243,7 @@ export default class DataTable extends Vue {
       this.criteria = contents.criteria
     })
 
-    reaction(() => [...headers.ids], () => {
+    reaction(() => headers.ids, () => {
       this.headers.items = headers.items
       this.headers.ids = headers.ids
       this.headers.length = headers.length
@@ -265,17 +265,19 @@ export default class DataTable extends Vue {
   }
 
   async setContent (_id, content: {}) {
+    const method = _id ? 'upsert' : 'insert'
+
     const curValue = toJS(this.subscribers.contents.items[_id])
     content = Object.assign(
       {},
       ...toJS(curValue ? Object.assign(curValue, { ... content }) : content),
-      { addedAt: Date.now() }
+      { [method === 'upsert' ? 'updatedAt' : 'addedAt']: Date.now() }
     )
-    const doc = await this.collections.contents[_id ? 'upsert' : 'insert']({ ...content })
+    const doc = await this.collections.contents[method]({ ...content })
     if (!_id) _id = doc._id
     this.last = _id
 
-    this.$el
+
   }
 
   sort (index) {
@@ -293,10 +295,10 @@ export default class DataTable extends Vue {
     this.subscribers.contents.select(id)
   }
 
-  beforeDestroy () {
-    this.subscribers.headers.kill()
-    this.subscribers.contents.kill()
-    this.db.destroy()
+  async beforeDestroy () {
+    await this.subscribers.headers.kill()
+    await this.subscribers.contents.kill()
+    await this.db.destroy()
   }
 
   get searching () {
@@ -326,7 +328,8 @@ headerfonts()
         &:not(:last-child)
           margin-right 12px
 
-lucian = black
+[data-table]
+  margin-bottom 32px
 
 table
   border 0
@@ -348,11 +351,16 @@ table
     border-top 0
 
   input
+  textarea
     border 0
     box-shadow none
     padding: cellY cellX
     background transparent
     width 100%
+    font-size 15px
+    line-height 24px
+    max-width 100%
+    max-height 100%
 
     &:focus
       outline 0
@@ -411,18 +419,18 @@ table
       td
         background rgba(#a0ff32, .05)
 
-thead
-  th
-    border-bottom-width 2px
+  thead
+    th
+      border-bottom-width 2px
 
-    input
-      headerfonts()
+      input
+        headerfonts()
 
-tfoot
-  tr
-    td
-      padding-top 24px
-      border 0
+  tfoot
+    tr
+      td
+        padding-top 24px
+        border 0
 
 .import
   padding 32px

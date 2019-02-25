@@ -38,7 +38,7 @@ function drop(e) {
   this.parseFiles(files)
 }
 
-const formats = ['csv']
+const formats = ['.csv']
 
 @Component({
   props: {

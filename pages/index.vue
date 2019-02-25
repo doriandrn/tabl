@@ -4,6 +4,7 @@ section.file-table
   data-table(
     :writePermissions = "writePermissions"
   )
+  data-table(id="2")
 
 
   .dev(v-if="isDev")
