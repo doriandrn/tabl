@@ -61,25 +61,31 @@ export default class Importer extends Vue {
     this.parsing = true
     const { files } = e.target
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-
-      // if (!file.type.startsWith('image/')){ continue }
-
-      // const img = document.createElement("img");
-      // img.classList.add("obj");
-      // img.file = file;
-      // preview.appendChild(img); // Assuming that "preview" is the div output where the content will be displayed.
-
-      const reader = new FileReader();
-      reader.onload = (function(aImg) { return function(e) { aImg.src = e.target.result; }; })(img);
-      reader.readAsDataURL(file);
-    }
+    const reader = new FileReader();
 
     await Promise.all(Object.keys(files).map(async filename => {
       const file = files[filename]
-      const data = await csv().fromFile(file)
-      console.log(filename, data)
+
+      reader.onloadstart = (e) => {
+        this.parsing = true
+      }
+      reader.onloadend = async (e) => {
+        const data = await csv().fromString(e.target.result)
+        let keys
+
+        data.map(item => {
+          if (!keys) {
+            keys = Object.keys(item)
+            keys.map((header, i) => this.$emit('header', { i, header }))
+          }
+
+          this.$emit('content', Object.assign({}, ... Object.values(item).map((val, index) => ({ [`c${index + 1}`]: val })) ))
+        })
+
+        this.parsing = false
+      }
+
+      reader.readAsText(file)
     }))
     this.parsing = false
   }

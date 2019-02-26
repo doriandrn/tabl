@@ -10,6 +10,9 @@
     importer(
       v-if=   "!hasContents && writePermissions"
       :noHeaders= "Boolean(headers.length)"
+
+      @header=    "setHeader($event.i, $event.header)"
+      @content=   "setContent(undefined, $event)"
     )
 
     .table-actions(v-if="hasContents")
@@ -234,9 +237,11 @@ export default class DataTable extends Vue {
 
     contents.criteria.sort = { addedAt: -1 }
 
-    reaction(() => contents.ids, () => {
-      // if (!done) return
+    reaction(() => contents.fetching, () => {
       this.fetching = contents.fetching
+    })
+
+    reaction(() => contents.items, () => {
       this.contents.items = contents.items
       this.contents.ids = contents.ids
       this.contents.length = contents.length
@@ -335,6 +340,8 @@ table
   border 0
   padding 40px
   width auto
+  display inline-block
+  margin 0 auto
 
   th
   td
@@ -361,12 +368,17 @@ table
     line-height 24px
     max-width 100%
     max-height 100%
+    resize none
 
     &:focus
       outline 0
       box-shadow 0
 
   th
+    &.new
+      max-width 40px
+      width 40px
+
     &.sortable
       input
         padding-right 40px // loc ca user sa dea click pe mobil sa editeze
@@ -414,6 +426,14 @@ table
     &.new
       td
         background rgba(black, .05)
+
+        // textarea
+        //   line-height 0
+        //   transition all .15s ease-in-out
+
+        //   &:hover
+        //   &:focus
+        //     line-height 24px
 
     &.last
       td
