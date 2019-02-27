@@ -1,3 +1,5 @@
+const { NODE_ENV } = process.env
+
 module.exports = {
   /*
   ** Headers of the page
@@ -18,6 +20,14 @@ module.exports = {
   */
   loading: { color: '#3B8070' },
   mode: 'spa',
+
+  router: {
+    base: NODE_ENV === 'production' ? '/' : undefined,
+    fallback: true,
+    linkActiveClass: 'active',
+    linkExactActiveClass: 'active-exact'
+  },
+
   /*
   ** Build configuration
   */
