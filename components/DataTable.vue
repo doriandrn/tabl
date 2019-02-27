@@ -120,7 +120,7 @@ plugin(require('pouchdb-adapter-memory'))
     },
     maxCols: {
       type: Number,
-      default: 10
+      default: 25
     },
     temporary: {
       type: Boolean,
@@ -338,10 +338,11 @@ headerfonts()
 
 table
   border 0
-  padding 40px
+  padding 4px
   width auto
   display inline-block
   margin 0 auto
+  background transparent
 
   th
   td
@@ -350,6 +351,7 @@ table
     position relative
     text-align left
     border 1px solid rgba(black, .05)
+    background white
 
     &:not(:last-child)
       border-right 0
@@ -451,6 +453,7 @@ table
       td
         padding-top 24px
         border 0
+        background transparent
 
 .import
   padding 32px

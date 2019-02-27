@@ -2,7 +2,7 @@
 #tableapp
   header
     .container__inner
-      h1 kewllogo
+      h1 tabl
 
   main
     .container__inner
@@ -47,10 +47,11 @@ button
 
   header
     flex 0 0 48px
-    background #fafafa
+    background white
 
   main
     flex 1 0 90%
+    background #f7f6f8
 
   .dev
     margin-top auto

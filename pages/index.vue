@@ -56,6 +56,9 @@ section
   font-size 13px
   color #666
 
+button
+  background yellow
+
 .dev
   padding 30px
   background rgba(teal, .1)
