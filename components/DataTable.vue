@@ -3,7 +3,8 @@
   data-table
 )
   input.h1(
-    placeholder=  "Please name this table..."
+    placeholder=  "Please give this a title."
+    @change=      "$emit('rename', $event.target.value)"
   )
 
   .choice
@@ -15,18 +16,23 @@
       @rowcontent=   "insertRow"
     )
 
-    .table-actions(v-if="total > 2")
+    .table-actions
       .right
-        input(type="search", v-model="search")
+        input(
+          type=     "search",
+          v-model=  "search"
+          v-if=     "total > 2"
+        )
         input(
           type=     "number",
           v-model=  "criteria.limit"
+          v-if=     "total > criteria.limit"
           max=      "250"
           min=      "2"
         )
         button print
         button share
-        button export
+        button(@click="dump") export
         button settings
 
     h4(v-if=  "!hasContents && !writePermissions") This table has no data.
@@ -222,9 +228,9 @@ export default class DataTable extends Vue {
     }
 
     this.db = await create({
-      name: `tt_${this.id}_${Date.now()}`,
+      name: `tt/${this.id}`,
       adapter: this.temporary ? 'memory' : 'idb',
-      ignoreDuplicate: true
+      ignoreDuplicate: this.temporary ? true : false
     })
 
     await Promise.all(Object.keys(cols).map(col => this.db.collection(cols[col])))
@@ -243,7 +249,7 @@ export default class DataTable extends Vue {
 
     const { headers, contents } = subscribers
 
-    contents.criteria.sort = { addedAt: -1 }
+    // contents.criteria.sort = { addedAt: -1 }
 
     reaction(() => contents.fetching, () => {
       this.fetching = contents.fetching
@@ -324,6 +330,8 @@ export default class DataTable extends Vue {
   get searching () {
     return this.search.length > 0
   }
+
+  dump () {}
 }
 </script>
 

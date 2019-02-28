@@ -8,13 +8,15 @@
     .container__inner
       aside.tables
         button(@click="newTable") new table
-        ul
-          li(
+        nav
+          nuxt-link(
             v-for= "table, id in items"
-            @click= "active = id"
+            :key= "id"
+            :to=  "`/${id}`"
+            :class= "{ active: active === id }"
           ) {{ table.name || 'Untitled' }}
 
-      nuxt
+      nuxt(:active= "active")
 
   footer
     .container__inner
@@ -109,9 +111,19 @@ export default class TableAppView extends Vue {
 
 
 <style lang="stylus">
-button
-  border 0
-  background transparent
+.container
+  min-height 100vh
+  display flex
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
+  &__inner
+    max-width 90%
+    margin 0 auto
+
+section
+  margin 40px 0
 
 #tableapp
   display flex
@@ -130,6 +142,9 @@ button
     flex 1 0 90%
     background #f7f6f8
 
+    .container__inner
+      display flex
+
   .dev
     margin-top auto
 
@@ -139,5 +154,20 @@ button
 
   footer
     margin-top auto
+
+
+  aside
+    padding 32px
+    padding-left 0
+    text-align: right;
+    max-width: 210px;
+    border-right 1px solid rgba(black, .05)
+    margin-right: 32px;
+
+    nav
+      margin-top 20px
+      a
+        display block
+
 </style>
 
