@@ -17,6 +17,7 @@ form.import
 <script lang="ts">
 import { Component, Vue } from 'nuxt-property-decorator'
 import csv from 'csvtojson'
+import Papa from 'papaparse'
 
 function dragenter(e) {
   e.stopPropagation()
@@ -61,33 +62,54 @@ export default class Importer extends Vue {
     this.parsing = true
     const { files } = e.target
 
-    const reader = new FileReader();
-
-    await Promise.all(Object.keys(files).map(async filename => {
-      const file = files[filename]
-
-      reader.onloadstart = (e) => {
-        this.parsing = true
-      }
-      reader.onloadend = async (e) => {
-        const data = await csv().fromString(e.target.result)
-        let keys
-
-        data.map(item => {
-          if (!keys) {
-            keys = Object.keys(item)
-            keys.map((header, i) => this.$emit('header', { i, header }))
+    Object.keys(files).map(filename => {
+      let i = -1
+      Papa.parse(files[filename], {
+        skipEmptyLines: true,
+        step: (results) => {
+          const { data } = results // a row
+          // headers
+          i += 1
+          if (i === 0) {
+            data[0].map((header, hi) => this.$emit('header', { i: hi + 1, header }))
+            return
           }
+          this.$emit('rowcontent', data[0])
+        },
 
-          this.$emit('content', Object.assign({}, ... Object.values(item).map((val, index) => ({ [`c${index + 1}`]: val })) ))
-        })
+        complete: () => {
+          this.parsing = false
+        }
+      })
+    })
 
-        this.parsing = false
-      }
+    // const reader = new FileReader();
 
-      reader.readAsText(file)
-    }))
-    this.parsing = false
+    // await Promise.all(Object.keys(files).map(async filename => {
+    //   const file = files[filename]
+
+    //   reader.onloadstart = (e) => {
+    //     this.parsing = true
+    //   }
+    //   reader.onloadend = async (e) => {
+    //     const data = await csv().fromString(e.target.result)
+    //     let keys
+
+    //     data.map(item => {
+    //       if (!keys) {
+    //         keys = Object.keys(item)
+    //         keys.map((header, i) => this.$emit('header', { i, header }))
+    //       }
+
+    //       this.$emit('content', Object.assign({}, ... Object.values(item).map((val, index) => ({ [`c${index + 1}`]: val })) ))
+    //     })
+
+    //     this.parsing = false
+    //   }
+
+    //   reader.readAsText(file)
+    // }))
+    // this.parsing = false
   }
 
   get knownReadFormats () {

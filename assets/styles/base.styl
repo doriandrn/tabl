@@ -1,0 +1,10 @@
+/** processed */
+loaded = false
+themesPath = './themes/' + theme + '/'
+themeConstants = typography palette spacings
+
+if (!loaded)
+  for file in themeConstants
+    @require themesPath + file
+
+  loaded = true

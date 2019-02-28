@@ -12,13 +12,18 @@
       :noHeaders= "Boolean(headers.length)"
 
       @header=    "setHeader($event.i, $event.header)"
-      @content=   "setContent(undefined, $event)"
+      @rowcontent=   "insertRow"
     )
 
-    .table-actions(v-if="hasContents")
+    .table-actions(v-if="total > 2")
       .right
         input(type="search", v-model="search")
-        input(type="number", v-model="criteria.limit")
+        input(
+          type=     "number",
+          v-model=  "criteria.limit"
+          max=      "250"
+          min=      "2"
+        )
         button print
         button share
         button export
@@ -71,7 +76,7 @@
           )
       tfoot
         tr
-          td.meta(v-if="contents.length") {{ contents.length }} of total
+          td.meta(v-if="contents.length") {{ contents.length }} of {{ total }}
           td.meta(v-if="fetching") fetching
 
     button(
@@ -154,6 +159,7 @@ export default class DataTable extends Vue {
   search = ''
   clear = ''
   activeColumn = ''
+  total = 0
 
   headers = {
     items: {},
@@ -280,9 +286,16 @@ export default class DataTable extends Vue {
     )
     const doc = await this.collections.contents[method]({ ...content })
     if (!_id) _id = doc._id
+    if (method === 'insert') this.total += 1
     this.last = _id
+  }
 
+  insertRow (data: string[]) {
+    const colData = {}
+    data.map((val, i) => { colData[`c${i + 1}`] = val })
 
+    this.collections.contents.insert(colData)
+    this.total += 1
   }
 
   sort (index) {
@@ -395,6 +408,7 @@ table
           z-index 1
           cursor pointer
           user-select none
+          white-space nowrap
           headerfonts()
 
           &:after

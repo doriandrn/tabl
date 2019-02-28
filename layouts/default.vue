@@ -6,6 +6,9 @@
 
   main
     .container__inner
+      aside.tables
+        ul
+          li blabla
       nuxt
 
   footer

@@ -1,13 +1,18 @@
 <template lang="pug">
+// td
+//   textarea(
+//     v-if=     "editable"
+//     @change = "$emit('input', $event)"
+//     @click=   "$emit('click')"
+//     :value=   "value"
+//     rows= 1
+//   )
+//   span(v-else) {{ value }}
+
 td
-  textarea(
-    v-if=     "editable"
-    @change = "$emit('input', $event)"
-    @click=   "$emit('click')"
-    :value=   "value"
-    rows= 1
-  )
-  span(v-else) {{ value }}
+  div(
+    :contentEditable = "editable"
+  ) {{ value }}
 </template>
 
 <script lang="ts">
@@ -35,3 +40,9 @@ import { Component, Vue } from 'nuxt-property-decorator'
 export default class Cell extends Vue {
 }
 </script>
+
+<style lang="stylus">
+td
+  > div
+    padding 8px
+</style>
