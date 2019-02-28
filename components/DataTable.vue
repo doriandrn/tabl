@@ -2,7 +2,7 @@
 .table(
   data-table
 )
-  input(
+  input.h1(
     placeholder=  "Please name this table..."
   )
 
@@ -36,7 +36,7 @@
       :class=       "{ fetching }"
       cellspacing=  0
     )
-      thead
+      thead.heading
         th(
           v-for="i in columnsLength"
           :class= "{\
@@ -95,7 +95,9 @@ import { RxDatabase, RxCollection, create, plugin } from 'rxdb';
 import importer from '~/components/import'
 import cell from '~/components/cell'
 
-plugin(require('pouchdb-adapter-memory'))
+plugin(require('pouchdb-adapter-memory')) // temoporary tables
+plugin(require('pouchdb-adapter-idb')) // production
+plugin(require('pouchdb-adapter-http')) // pt sync
 
 @Component({
   computed: {
@@ -330,9 +332,10 @@ cellY = 4px
 cellX = 8px
 
 headerfonts()
-  font-size 16px
-  line-height 24px
-  font-weight bold
+  font-size 17px
+  line-height 32px
+  font-weight 500
+  color white
 
 .table
   &-actions
@@ -458,9 +461,16 @@ table
   thead
     th
       border-bottom-width 2px
+      background black
 
       input
+        width 100%
         headerfonts()
+
+  &.fetching
+    thead
+      th
+        border-bottom 2px solid yellow
 
   tfoot
     tr

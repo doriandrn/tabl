@@ -20,6 +20,8 @@
     "mobx-vue": "^2.0.8",
     "nuxt": "^2.4.3",
     "papaparse": "^4.6.3",
+    "pouchdb-adapter-http": "^7.0.0",
+    "pouchdb-adapter-idb": "^7.0.0",
     "pug": "^2.0.3",
     "pug-plain-loader": "^1.0.0",
     "rxdb": "^8.0.5",
