@@ -5,6 +5,7 @@
   input.h1(
     placeholder=  "Please give this a title."
     @change=      "$emit('rename', $event.target.value)"
+    :value=       "title"
   )
 
   .choice
@@ -123,6 +124,9 @@ plugin(require('pouchdb-adapter-http')) // pt sync
     id: {
       type: String,
       default: 'untitled'
+    },
+    title: {
+      type: String
     },
     recordHistory: {
       type: Boolean,

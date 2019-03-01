@@ -34,7 +34,9 @@ module.exports = {
     linkActiveClass: 'active',
     linkExactActiveClass: 'active-exact'
   },
-
+  plugins: [
+    { src: '~plugins/db' }
+  ],
   /*
   ** Build configuration
   */
