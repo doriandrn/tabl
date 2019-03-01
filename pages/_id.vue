@@ -2,8 +2,8 @@
 .hola
   data-table(
     :id=  "$route.params.id"
-    temporary= false
-    writePermissions = true
+    :temporary= "false"
+    :writePermissions = "true"
     @rename= "rename"
   )
 </template>

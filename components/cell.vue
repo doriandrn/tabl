@@ -12,7 +12,9 @@
 td
   div(
     :contentEditable = "editable"
-  ) {{ value }}
+    @blur = "emitChange($event)"
+    v-text= "value"
+  )
 </template>
 
 <script lang="ts">
@@ -38,6 +40,11 @@ import { Component, Vue } from 'nuxt-property-decorator'
   }
 })
 export default class Cell extends Vue {
+  async emitChange ($event) {
+    if (this.value === $event.target.textContent) return
+    await this.$emit('change', $event.target.textContent)
+    // $event.target.textContent = ''
+  }
 }
 </script>
 
@@ -45,4 +52,5 @@ export default class Cell extends Vue {
 td
   > div
     padding 8px
+    outline none
 </style>

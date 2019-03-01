@@ -65,11 +65,12 @@
           cell(
             v-for=        "i in columnsLength"
             :key=         "`new${i}`"
-            @input=       "setContent(undefined, { [`c${i}`]: $event.target.value });"
+            @change=       "setContent(undefined, { [`c${i}`]: $event });"
           )
         tr(
           v-for=  "j in contents.length"
-          :class= "{ last: last === contents.ids[j - 1] }"
+          :class= "{ last: last === contents.ids[j - 1], active: activeRow === contents.ids[j - 1]}"
+          @click= "selectRow(contents.ids[j - 1])"
         )
           cell(
             v-for=        "i in columnsLength"
@@ -77,7 +78,7 @@
             :editable=    "writePermissions"
             :reference=   "contents.ids[j - 1] || ''"
             :value=       "cell(contents.ids[j - 1], i)"
-            @input=       "setContent(contents.ids[j - 1], { [`c${i}`]: $event.target.value })"
+            @change=       "setContent(contents.ids[j - 1], { [`c${i}`]: $event })"
             @click=       "activeColumn = `c${i}`"
           )
       tfoot
@@ -167,6 +168,7 @@ export default class DataTable extends Vue {
   search = ''
   clear = ''
   activeColumn = ''
+  activeRow = ''
   total = 0
 
   headers = {
@@ -306,6 +308,10 @@ export default class DataTable extends Vue {
     this.total += 1
   }
 
+  selectRow (id: string) {
+    this.activeRow = id
+  }
+
   sort (index) {
     const { criteria } = this.subscribers.contents
     const active = criteria.sort[`c${index}`] > 0
@@ -322,9 +328,13 @@ export default class DataTable extends Vue {
   }
 
   async beforeDestroy () {
-    await this.subscribers.headers.kill()
-    await this.subscribers.contents.kill()
-    await this.db.destroy()
+    const { subscribers, db } = this
+    if (subscribers) {
+      const { headers, contents } = subscribers
+      if (headers) await headers.kill()
+      if (contents) await contents.kill()
+    }
+    if (db) await db.destroy()
   }
 
   get searching () {
@@ -336,14 +346,15 @@ export default class DataTable extends Vue {
 </script>
 
 <style lang="stylus">
+@require '~assets/styles/base'
+
 cellY = 4px
 cellX = 8px
 
 headerfonts()
-  font-size 17px
   line-height 32px
   font-weight 500
-  color white
+  color: pal.bg
 
 .table
   &-actions
@@ -402,8 +413,8 @@ table
 
   th
     &.new
-      max-width 40px
-      width 40px
+      max-width 80px
+      width 80px
 
     &.sortable
       input
@@ -450,6 +461,12 @@ table
         input+span:after
           transform rotate(180deg)
   tr
+    position relative
+
+    &.active
+      td
+        background: rgba(pal.highlight, .05)
+
     &.new
       td
         background rgba(black, .05)

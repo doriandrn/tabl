@@ -14,7 +14,7 @@
             :key= "id"
             :to=  "`/${id}`"
             :class= "{ active: active === id }"
-          ) {{ table.name || 'Untitled' }}
+          ) {{ table.name || `Untitled ${ids.indexOf(id) + 1}` }}
 
       nuxt(:active= "active")
 
@@ -140,7 +140,6 @@ section
 
   main
     flex 1 0 90%
-    background #f7f6f8
 
     .container__inner
       display flex
