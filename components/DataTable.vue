@@ -17,7 +17,7 @@
       @rowcontent=   "insertRow"
     )
 
-    .table-actions
+    .table_actions
       .right
         input(
           type=     "search",
@@ -359,6 +359,8 @@ export default class DataTable extends Vue {
 cellY = 4px
 cellX = 8px
 
+thbg = pal.secondary
+
 headerfonts()
   font-family: fonts.headings
   font-size 14px
@@ -368,10 +370,13 @@ headerfonts()
   letter-spacing 0
 
 .table
-  &-actions
+  &_actions
     display flex
     flex-flow row wrap
     margin-bottom 20px
+
+    @media print
+      display none
 
     .right
       margin-left auto
@@ -399,12 +404,12 @@ headerfonts()
       position relative
       text-align left
       border 1px solid rgba(black, .05)
-      background white
 
       &:not(:last-child)
         border-right 0
 
     td
+      background white
       border-top 0
 
     input
@@ -431,13 +436,21 @@ headerfonts()
 
       &.sortable
         input
-          padding-right 40px // loc ca user sa dea click pe mobil sa editeze
-          opacity 0
+          position absolute
+          left: 0
+          top: 0
+          z-index 0
+
+          &:focus
+          &:active
+            z-index 2
+            background: thbg
 
           &+span
-            position absolute
-            left: 0
-            top: 0
+            display inline-block
+            vertical-align top
+            position relative
+            margin-right 40px // loc ca user sa dea click pe mobil sa editeze
             padding: cellY cellX
             bottom 0
             z-index 1
@@ -445,6 +458,10 @@ headerfonts()
             user-select none
             white-space nowrap
             headerfonts()
+
+            @media print
+              color black
+              font-weight 600
 
             &:after
               content ''
@@ -499,18 +516,31 @@ headerfonts()
     thead
       th
         border-bottom-width 2px
-        background black
+        background: thbg
+
+        span
+          display block
+
+        @media print
+          span
+            color black
 
         input
           width 100%
           headerfonts()
 
+          @media print
+            display none
+
     &.fetching
       thead
         th
-          border-bottom 2px solid yellow
+          border-bottom: 2px solid pal.principal
 
     tfoot
+      @media print
+        display none
+
       tr
         td
           padding-top 24px
@@ -527,4 +557,8 @@ headerfonts()
 .choice
   display flex
   flex-flow column nowrap
+
+.new
+  @media print
+    display none
 </style>

@@ -101,6 +101,11 @@ section
   header
     flex 0 0 48px
     background white
+    margin-bottom auto
+    margin-top 0
+
+    @media print
+      display none
 
   main
     max-width 100%
@@ -109,12 +114,11 @@ section
   .dev
     margin-top auto
 
-  header
-    margin-bottom auto
-    margin-top 0
-
   footer
     margin-top auto
+
+    @media print
+      display none
 
 
   aside
@@ -124,6 +128,9 @@ section
     border-right 1px solid rgba(black, .05)
     background yellow
     width 100%
+    
+    @media print
+      display none
 
     +above(xl)
       max-width: 210px;
