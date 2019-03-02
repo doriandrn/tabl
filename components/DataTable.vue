@@ -31,7 +31,7 @@
           max=      "250"
           min=      "2"
         )
-        button print
+        button(@click="print") print
         button share
         button(@click="dump") export
         button settings
@@ -345,6 +345,10 @@ export default class DataTable extends Vue {
     return this.search.length > 0
   }
 
+  print () {
+    window.print()
+  }
+
   dump () {}
 }
 </script>
@@ -356,9 +360,12 @@ cellY = 4px
 cellX = 8px
 
 headerfonts()
+  font-family: fonts.headings
+  font-size 14px
   line-height 32px
   font-weight 500
   color: pal.bg
+  letter-spacing 0
 
 .table
   &-actions
@@ -375,138 +382,140 @@ headerfonts()
 [data-table]
   margin-bottom 32px
 
-table
-  border 0
-  padding 4px
-  width auto
-  display inline-block
-  margin 0 auto
-  background transparent
-
-  th
-  td
-    padding 0
-    margin 0
-    position relative
-    text-align left
-    border 1px solid rgba(black, .05)
-    background white
-
-    &:not(:last-child)
-      border-right 0
-
-  td
-    border-top 0
-
-  input
-  textarea
+  table
     border 0
-    box-shadow none
-    padding: cellY cellX
+    padding 0
+    width auto
+    display inline-block
+    margin 0 auto
     background transparent
-    width 100%
-    font-size 15px
-    line-height 24px
     max-width 100%
-    max-height 100%
-    resize none
+    overflow-x auto
 
-    &:focus
-      outline 0
-      box-shadow 0
-
-  th
-    &.new
-      max-width 80px
-      width 80px
-
-    &.sortable
-      input
-        padding-right 40px // loc ca user sa dea click pe mobil sa editeze
-        opacity 0
-
-        &+span
-          position absolute
-          left: 0
-          top: 0
-          padding: cellY cellX
-          bottom 0
-          z-index 1
-          cursor pointer
-          user-select none
-          white-space nowrap
-          headerfonts()
-
-          &:after
-            content ''
-            position relative
-            background url('data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjE4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIxOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxwYXRoIGQ9Ik0wIDBoMjR2MjRIMFYweiIgZmlsbD0ibm9uZSIvPgogICAgPHBhdGggZD0iTTIwIDEybC0xLjQxLTEuNDFMMTMgMTYuMTdWNGgtMnYxMi4xN2wtNS41OC01LjU5TDQgMTJsOCA4IDgtOHoiIGZpbGw9IiM1NTU1NTUiLz4KPC9zdmc+')
-            background-size 100%
-            width 14px
-            height 14px
-            display inline-block
-            vertical-align middle
-            margin-left 10px
-            opacity 0
-            visibility hidden
-            transition transform .15s ease
-
-      &.sort
-      &:hover
-      &:focus
-        input
-          opacity 1
-          &+span
-            &:after
-              opacity 1
-              visibility visible
-
-      &.reverse
-        input+span:after
-          transform rotate(180deg)
-  tr
-    position relative
-
-    &.active
-      td
-        background: rgba(pal.highlight, .05)
-
-    &.new
-      td
-        background rgba(black, .05)
-
-        // textarea
-        //   line-height 0
-        //   transition all .15s ease-in-out
-
-        //   &:hover
-        //   &:focus
-        //     line-height 24px
-
-    &.last
-      td
-        background rgba(#a0ff32, .05)
-
-  thead
     th
-      border-bottom-width 2px
-      background black
+    td
+      padding 0
+      margin 0
+      position relative
+      text-align left
+      border 1px solid rgba(black, .05)
+      background white
 
-      input
-        width 100%
-        headerfonts()
+      &:not(:last-child)
+        border-right 0
 
-  &.fetching
+    td
+      border-top 0
+
+    input
+    textarea
+      border 0
+      box-shadow none
+      padding: cellY cellX
+      background transparent
+      width 100%
+      font-size 15px
+      line-height 24px
+      max-width 100%
+      max-height 100%
+      resize none
+
+      &:focus
+        outline 0
+        box-shadow 0
+
+    th
+      &.new
+        max-width 80px
+        width 80px
+
+      &.sortable
+        input
+          padding-right 40px // loc ca user sa dea click pe mobil sa editeze
+          opacity 0
+
+          &+span
+            position absolute
+            left: 0
+            top: 0
+            padding: cellY cellX
+            bottom 0
+            z-index 1
+            cursor pointer
+            user-select none
+            white-space nowrap
+            headerfonts()
+
+            &:after
+              content ''
+              position relative
+              background url('data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjE4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIxOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxwYXRoIGQ9Ik0wIDBoMjR2MjRIMFYweiIgZmlsbD0ibm9uZSIvPgogICAgPHBhdGggZD0iTTIwIDEybC0xLjQxLTEuNDFMMTMgMTYuMTdWNGgtMnYxMi4xN2wtNS41OC01LjU5TDQgMTJsOCA4IDgtOHoiIGZpbGw9IiM1NTU1NTUiLz4KPC9zdmc+')
+              background-size 100%
+              width 14px
+              height 14px
+              display inline-block
+              vertical-align middle
+              margin-left 10px
+              opacity 0
+              visibility hidden
+              transition transform .15s ease
+
+        &.sort
+        &:hover
+        &:focus
+          input
+            opacity 1
+            &+span
+              &:after
+                opacity 1
+                visibility visible
+
+        &.reverse
+          input+span:after
+            transform rotate(180deg)
+    tr
+      position relative
+
+      &.active
+        td
+          background: rgba(pal.highlight, .05)
+
+      &.new
+        td
+          background rgba(black, .05)
+
+          // textarea
+          //   line-height 0
+          //   transition all .15s ease-in-out
+
+          //   &:hover
+          //   &:focus
+          //     line-height 24px
+
+      &.last
+        td
+          background rgba(#a0ff32, .05)
+
     thead
       th
-        border-bottom 2px solid yellow
+        border-bottom-width 2px
+        background black
 
-  tfoot
-    tr
-      td
-        padding-top 24px
-        border 0
-        background transparent
+        input
+          width 100%
+          headerfonts()
+
+    &.fetching
+      thead
+        th
+          border-bottom 2px solid yellow
+
+    tfoot
+      tr
+        td
+          padding-top 24px
+          border 0
+          background transparent
 
 .import
   padding 32px

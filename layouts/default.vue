@@ -68,8 +68,23 @@ export default class TableAppView extends Vue {
   text-align: center;
 
   &__inner
-    max-width 90%
+    max-width 100%
     margin 0 auto
+    display flex
+    flex-flow row wrap
+    padding 0 4px
+
+    +above(m)
+      padding 0 8px
+
+    +above(l)
+      padding 0 12px
+
+    +above(xl)
+      padding 0 16px
+
+    +desktop()
+      padding 0 20px
 
 section
   margin 40px 0
@@ -88,10 +103,8 @@ section
     background white
 
   main
-    flex 1 0 90%
-
-    .container__inner
-      display flex
+    max-width 100%
+    flex 1 0 100%
 
   .dev
     margin-top auto
@@ -108,14 +121,20 @@ section
     padding 32px
     padding-left 0
     text-align: right;
-    max-width: 210px;
     border-right 1px solid rgba(black, .05)
-    margin-right: 32px;
+    background yellow
+    width 100%
+
+    +above(xl)
+      max-width: 210px;
+      margin-right: 32px;
 
     nav
       margin-top 20px
+      
       a
-        display block
+        display inline-block
+        margin 4px
 
 </style>
 
