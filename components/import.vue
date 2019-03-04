@@ -62,6 +62,8 @@ export default class Importer extends Vue {
     this.parsing = true
     const { files } = e.target
 
+    console.info('F', files)
+
     Object.keys(files).map(filename => {
       let i = -1
       Papa.parse(files[filename], {
@@ -77,7 +79,13 @@ export default class Importer extends Vue {
           this.$emit('rowcontent', data[0])
         },
 
-        complete: () => {
+        chunk: (chunk) => {
+
+        },
+
+        complete: (results, file) => {
+          const { size } = file
+          this.$emit('parsed', { i, size })
           this.parsing = false
         }
       })

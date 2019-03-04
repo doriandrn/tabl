@@ -1,22 +1,21 @@
 <template lang="pug">
 #tableapp
-  header
-    .container__inner
-      .logo.heading tabl
+  //- header
+  //-   .container__inner
+  //-     .logo.heading tabl
 
   main
-    .container__inner
-      aside.tables
-        button(@click="newTable") new table
-        nav
-          nuxt-link(
-            v-for= "table, id in items"
-            :key= "id"
-            :to=  "`/${id}`"
-            :class= "{ active: active === id }"
-          ) {{ table.name || `Untitled ${ids.indexOf(id) + 1}` }}
+    aside
+      button(@click="newTable") new
+      nav
+        nuxt-link(
+          v-for=  "table, id in items"
+          :key=   "id"
+          :to=    "`/${id}`"
+        ) {{ table.title || `Untitled ${ids.indexOf(id) + 1}` }}
+          span.count {{ table.total }}
 
-      nuxt(:active= "active")
+    nuxt(:active= "active")
 
   footer
     .container__inner
@@ -35,24 +34,29 @@ export default class TableAppView extends Vue {
   items = {}
   ids = []
   length = -1
+  _subscriber = undefined
 
   newTable () {
     this.$db.collections.datasets.insert({}).then(doc => {
-      this.active = doc._id
+      this.$router.replace({ path: `/${doc._id}` })
     })
   }
 
   async beforeDestroy () {
+    this._subscriber.kill()
     await this.$db.destroy()
   }
 
-  async mounted () {
-    const tablas = new Subscriber(this.$db.collections.datasets)
+  beforeCreate () {
+    this._subscriber = new Subscriber(this.$db.collections.datasets)
+  }
 
-    reaction(() => tablas.ids, () => {
-      this.items = tablas.items
-      this.ids = tablas.ids
-      this.length = tablas.length
+  async mounted () {
+    reaction(() => this._subscriber.items, () => {
+      console.info('shit updated')
+      this.items = this._subscriber.items
+      this.ids = this._subscriber.ids
+      this.length = this._subscriber.length
     })
   }
 }
@@ -122,12 +126,9 @@ section
 
 
   aside
+    position fixed 0 auto 0 0
     padding 32px
-    padding-left 0
     text-align: right;
-    border-right 1px solid rgba(black, .05)
-    background yellow
-    width 100%
     
     @media print
       display none
@@ -135,6 +136,7 @@ section
     +above(xl)
       max-width: 210px;
       margin-right: 32px;
+      border-right 1px solid rgba(black, .05)
 
     nav
       margin-top 20px
@@ -142,6 +144,9 @@ section
       a
         display inline-block
         margin 4px
+
+        +above(xl)
+          display block
 
 </style>
 

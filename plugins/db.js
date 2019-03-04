@@ -23,8 +23,9 @@ const cols = {
       version: 0,
       type: 'object',
       properties: {
-        name: { type: 'string' },
-        category: { ref: 'categories', type: 'string', index: true }
+        title: { type: 'string' },
+        category: { ref: 'categories', type: 'string', index: true },
+        total: { type: 'number' }
       }
     }
   },
@@ -37,7 +38,7 @@ const cols = {
       properties: {
         name: { type: 'string' },
         criteria: { type: 'object' },
-        table: { ref: 'tables', type: 'string' }
+        dataset: { ref: 'datasets', type: 'string' }
       }
     }
   }
@@ -45,7 +46,7 @@ const cols = {
 
 export default async ({ app }, inject) => {
   const db = await create({
-    name: 'tableapp',
+    name: 'tableapp4',
     adapter: 'idb'
   })
 

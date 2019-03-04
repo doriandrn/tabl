@@ -1,47 +1,65 @@
 <template lang="pug">
-.hola
+.yolo
   data-table(
-    v-if= "setdata._id === $route.params.id"
-    :id=  "$route.params.id"
-    :temporary= "false"
+    v-if=         "doc && doc._id === id"
+    :id=          "id"
+    :temporary=   "false"
     :writePermissions = "true"
-    @rename= "rename"
-    :title= "setdata.name"
-  )
+    @rename=      "title = $event"
+    :title=       "doc.title"
+    :totalCount=  "total"
+    @newTotal=    "total = $event"
+  ) {{ total }}
 </template>
 
 <script lang="ts">
 import { Component, Vue } from 'nuxt-property-decorator'
 import DataTable from '~/components/DataTable'
 
-let dataset
+let doc
 
 @Component({
   components: {
     DataTable
+  },
+  computed: {
+    id () {
+      return this.$route.params.id
+    }
   }
 })
 export default class Dataset extends Vue {
-  setdata = {
-    name: undefined,
-    _id: undefined
+  doc = {
+    title: '',
+    _id: null,
+    _rev: undefined,
+    total: -1
   }
 
-  async asyncData ({ params, app }) {
-    const { id } = params
-    dataset = await app.$db.collections.datasets.findOne(id).exec()
-    console.log('NFDS', dataset)
-    const { _data } = dataset
-    const setdata = Object.assign({}, { ..._data })
-    return { setdata }
+  get title () {
+    return (this.doc.title) || ''
   }
 
-  rename (newname) {
-    dataset.atomicSet('name', newname)
+  set title (newTitle) {
+    this.doc.atomicSet('title', newTitle)
+  }
+
+  get total () {
+    return (this.doc.total) || -1
+  }
+
+  set total (newVal: number) {
+    this.doc.atomicSet('total', newVal)
+    // doc.total = newVal
+  }
+
+  async mounted () {
+    doc = await this.$db.collections.datasets.findOne(this.id).exec()
+    this.doc = Object.seal(doc)
   }
 
   destroy () {
-    dataset = undefined
+    this.doc = undefined
   }
 }
 </script>

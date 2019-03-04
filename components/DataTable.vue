@@ -10,11 +10,12 @@
 
   .choice
     importer(
-      v-if=   "!hasContents && writePermissions"
+      v-if=       "!hasContents && writePermissions && !status.message"
       :noHeaders= "Boolean(headers.length)"
 
       @header=    "setHeader($event.i, $event.header)"
       @rowcontent=   "insertRow"
+      @parsed=    "waitForData"
     )
 
     .table_actions
@@ -31,7 +32,10 @@
           max=      "250"
           min=      "2"
         )
-        button(@click="print") print
+        button(
+          v-if=   "!status.message"
+          @click= "print"
+        ) print
         button share
         button(@click="dump") export
         button settings
@@ -61,8 +65,16 @@
             v-if= "contents.length > 1"
             @click=   "sort(i)"
           ) {{ headersVals[i - 1] }}
+      
       tbody
-        tr.new(v-if= "writePermissions")
+        tr.working(v-if=  "status.message")
+          td(:colspan=  "headersVals.length + 1")
+            em
+              strong {{ status.message }}
+              progress-bar(:eta=  "status.eta")
+              small estimated: {{ status.eta }} seconds
+
+        tr.new(v-if= "writePermissions && !status")
           cell(
             v-for=        "i in columnsLength"
             :key=         "`new${i}`"
@@ -91,6 +103,8 @@
       v-if=   "contents.length === criteria.limit"
       @click= "increaseIndex"
     ) more!
+
+    slot
 </template>
 
 <script lang="ts">
@@ -102,6 +116,7 @@ import { RxDatabase, RxCollection, create, plugin } from 'rxdb';
 
 import importer from '~/components/import'
 import cell from '~/components/cell'
+import progressBar from '~/components/progress'
 
 plugin(require('pouchdb-adapter-memory')) // temoporary tables
 plugin(require('pouchdb-adapter-idb')) // production
@@ -147,11 +162,21 @@ plugin(require('pouchdb-adapter-http')) // pt sync
     writePermissions: {
       type: Boolean,
       default: false
+    },
+
+    totalCount: {
+      type: Number,
+      default: -1
+    },
+    favorites: {
+      type: Boolean,
+      default: true
     }
   },
   components: {
     importer,
-    cell
+    cell,
+    progressBar
   },
   watch: {
     search: function (val) {
@@ -173,7 +198,11 @@ export default class DataTable extends Vue {
   clear = ''
   activeColumn = ''
   activeRow = ''
-  total = 0
+
+  status = {
+    message: '',
+    eta: undefined
+  }
 
   headers = {
     items: {},
@@ -187,8 +216,29 @@ export default class DataTable extends Vue {
     length: 0
   }
 
+  set total (val) {
+    this.$emit('newTotal', val)
+  }
+
+  get total () {
+    return this.totalCount
+  }
+
   get cell () {
     return (id, column) => this.contents.items[id] ? this.contents.items[id][`c${column}`] || '' : ''
+  }
+
+  async waitForData ({ i, size }) {
+    this.total = i
+    this.status = {
+      message: `Processing ${i} entries`,
+      eta: Math.floor(size / 4000)
+    }
+    await this.subscribers.contents.updates
+    this.status = {
+      message: '',
+      eta: undefined
+    }
   }
 
   // vue privates
@@ -233,6 +283,12 @@ export default class DataTable extends Vue {
       }})
     }
 
+    if (this.favorites) {
+      Object.assign(cols.contents.schema.properties, { fav: {
+        type: 'boolean'
+      }})
+    }
+
     this.db = await create({
       name: `tt/${this.id}`,
       adapter: this.temporary ? 'memory' : 'idb',
@@ -255,8 +311,6 @@ export default class DataTable extends Vue {
 
     const { headers, contents } = subscribers
 
-    // contents.criteria.sort = { addedAt: -1 }
-
     reaction(() => contents.fetching, () => {
       this.fetching = contents.fetching
     })
@@ -273,11 +327,6 @@ export default class DataTable extends Vue {
       this.headers.ids = headers.ids
       this.headers.length = headers.length
     })
-
-    // reaction(() => ({ ...contents.items }), async (changes) => {
-
-    //   console.log("FFS", changes)
-    // })
 
     this.$emit('loaded')
   }
@@ -309,7 +358,6 @@ export default class DataTable extends Vue {
     data.map((val, i) => { colData[`c${i + 1}`] = val })
 
     this.collections.contents.insert(colData)
-    this.total += 1
   }
 
   selectRow (id: string) {
@@ -390,7 +438,7 @@ headerfonts()
   table
     border 0
     padding 0
-    width auto
+    width 100%
     display inline-block
     margin 0 auto
     background transparent
@@ -433,6 +481,10 @@ headerfonts()
       &.new
         max-width 80px
         width 80px
+
+        &:first-child:last-child
+          max-width 100%
+          width 100%
 
       &.sortable
         input
@@ -512,6 +564,17 @@ headerfonts()
       &.last
         td
           background rgba(#a0ff32, .05)
+
+      &.working > td
+        text-align center
+        padding 40px
+
+        em
+        strong
+          display block
+
+        .progress
+          margin 16px auto
 
     thead
       th

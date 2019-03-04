@@ -1,11 +1,7 @@
 <template lang="pug">
 //- p(v-if="loading") loading
 section.file-table
-  data-table(
-    :writePermissions = "writePermissions"
-  )
-  data-table(id="2")
-
+  p homepage stuff, welcome, guides, how to start, shit like dis
 
   .dev(v-if="isDev")
     h1 DEV
@@ -38,26 +34,11 @@ export default class Zable extends Vue {
 </script>
 
 <style lang="stylus">
-.container
-  min-height 100vh
-  display flex
-  justify-content: center;
-  align-items: center;
-  text-align: center;
 
-  &__inner
-    max-width 90%
-    margin 0 auto
-
-section
-  margin 40px 0
 
 .meta
   font-size 13px
   color #666
-
-button
-  background yellow
 
 .dev
   padding 30px

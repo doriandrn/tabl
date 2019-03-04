@@ -2,6 +2,7 @@
 
 module.exports = {
   plugins: {
+    'postcss-short': {},
     'postcss-vertical-rhythm': {},
     'postcss-pxtorem': {},
     'autoprefixer': {},
