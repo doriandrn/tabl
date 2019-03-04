@@ -2,12 +2,6 @@
 .table(
   data-table
 )
-  input.h1(
-    placeholder=  "Please give this a title."
-    @change=      "$emit('rename', $event.target.value)"
-    :value=       "title"
-  )
-
   .choice
     importer(
       v-if=       "!hasContents && writePermissions && !status.message"
@@ -100,7 +94,7 @@
           td.meta(v-if="fetching") fetching
 
     button(
-      v-if=   "contents.length === criteria.limit"
+      v-if=   "contents.length < total || (searching && contents.length > criteria.limit)"
       @click= "increaseIndex"
     ) more!
 
@@ -383,10 +377,11 @@ export default class DataTable extends Vue {
     const { subscribers, db } = this
     if (subscribers) {
       const { headers, contents } = subscribers
-      if (headers) await headers.kill()
       if (contents) await contents.kill()
+      if (headers) await headers.kill()
     }
     if (db) await db.destroy()
+    console.log('DT ended')
   }
 
   get searching () {
@@ -414,7 +409,7 @@ headerfonts()
   font-size 14px
   line-height 32px
   font-weight 500
-  color: pal.bg
+  color: pal.secondary
   letter-spacing 0
 
 .table
@@ -458,7 +453,6 @@ headerfonts()
 
     td
       background white
-      border-top 0
 
     input
     textarea
@@ -493,10 +487,10 @@ headerfonts()
           top: 0
           z-index 0
 
-          &:focus
+          &:focuss
           &:active
             z-index 2
-            background: thbg
+            border-color: thbg
 
           &+span
             display inline-block
@@ -579,7 +573,6 @@ headerfonts()
     thead
       th
         border-bottom-width 2px
-        background: thbg
 
         span
           display block

@@ -50,7 +50,14 @@ export default class Cell extends Vue {
 
 <style lang="stylus">
 td
-  > div
-    padding 8px
+  > div[contenteditable]
+    padding 2px 8px
+    line-height 30px
     outline none
+    border 1px solid transparent
+    transition all .1s ease-in-out
+
+    &:focus
+      border-color red
+      color black
 </style>

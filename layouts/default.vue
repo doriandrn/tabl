@@ -64,6 +64,8 @@ export default class TableAppView extends Vue {
 
 
 <style lang="stylus">
+@require '~assets/styles/base'
+
 .container
   min-height 100vh
   display flex
@@ -129,6 +131,7 @@ section
     position fixed 0 auto 0 0
     padding 32px
     text-align: right;
+    background: pal.bg
     
     @media print
       display none
@@ -137,6 +140,10 @@ section
       max-width: 210px;
       margin-right: 32px;
       border-right 1px solid rgba(black, .05)
+
+      &+div
+        margin-left 210px
+        margin-right 12px
 
     nav
       margin-top 20px
