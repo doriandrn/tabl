@@ -4,31 +4,26 @@
   "description": "Datatable",
   "author": "Dorian Tudorache",
   "private": true,
+  "main": "main.js",
   "scripts": {
     "dev": "nuxt",
-    "build": "nuxt build",
+    "dev-electron": "cross-env NODE_ENV=DEV electron .",
+    "build": "NODE_ENV=production nuxt build && electron-builder",
     "start": "nuxt start",
     "generate": "nuxt generate",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore .",
     "precommit": "npm run lint",
     "git-deploy": "git subtree push --prefix dist origin gh-pages"
   },
+  "build": {
+    "appId": "com.electron.tabl",
+    "directories": {
+      "buildResources": "static"
+    }
+  },
   "dependencies": {
-    "csvtojson": "^2.0.8",
-    "fs": "^0.0.1-security",
-    "mobx": "^5.9.0",
-    "mobx-vue": "^2.0.8",
     "nuxt": "^2.4.5",
-    "papaparse": "^4.6.3",
-    "pouchdb-adapter-http": "^7.0.0",
-    "pouchdb-adapter-idb": "^7.0.0",
-    "pug": "^2.0.3",
-    "pug-plain-loader": "^1.0.0",
-    "rxdb": "^8.0.5",
-    "rxjs": "^6.4.0",
-    "stylus": "^0.54.5",
-    "stylus-loader": "^3.0.2",
-    "vue-class-component": "^7.0.1"
+    "rupture": "^0.7.1"
   },
   "devDependencies": {
     "@babel/plugin-proposal-decorators": "^7.3.0",
@@ -36,21 +31,37 @@
     "babel-eslint": "^10.0.1",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-decorators-legacy": "^1.3.5",
-    "eslint": "^5.15.0",
+    "csvtojson": "^2.0.8",
+    "electron": "^4.0.7",
+    "electron-builder": "^20.38.5",
+    "eslint": "^5.15.1",
     "eslint-friendly-formatter": "^4.0.1",
     "eslint-loader": "^2.1.2",
     "eslint-plugin-vue": "^5.2.2",
+    "fs": "^0.0.1-security",
+    "mobx": "^5.9.0",
+    "mobx-vue": "^2.0.8",
     "nuxt-class-component": "^1.2.1",
     "nuxt-property-decorator": "^2.1.3",
+    "papaparse": "^4.6.3",
     "postcss-font-magician": "^2.2.1",
     "postcss-pxtorem": "^4.0.1",
     "postcss-short": "^5.0.0",
     "postcss-vertical-rhythm": "^1.1.5",
+    "pouchdb-adapter-http": "^7.0.0",
+    "pouchdb-adapter-idb": "^7.0.0",
     "pouchdb-adapter-memory": "^7.0.0",
-    "rupture": "^0.7.1",
+    "pouchdb-adapter-websql": "^7.0.0",
+    "pug": "^2.0.3",
+    "pug-plain-loader": "^1.0.0",
     "rxcollection-subscriber": "^1.0.1",
+    "rxdb": "^8.0.5",
+    "rxjs": "^6.4.0",
+    "stylus": "^0.54.5",
+    "stylus-loader": "^3.0.2",
     "ts-loader": "^5.3.3",
     "typescript": "^3.3.3333",
-    "vue": "^2.6.8"
+    "vue": "^2.6.8",
+    "vue-class-component": "^7.0.1"
   }
 }

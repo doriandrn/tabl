@@ -130,8 +130,9 @@ section
   aside
     position fixed 0 auto 0 0
     padding 32px
-    text-align: right;
+    text-align: right
     background: pal.bg
+    -webkit-app-region: drag
 
     a:not(.active):not(:focus):not(:hover)
       color #aaa

@@ -30,15 +30,15 @@ module.exports = {
     lang: 'stylus'
   }],
   mode: 'spa',
+  dev: process.env.NODE_ENV === 'DEV',
 
   router: {
-    // base: NODE_ENV === 'production' ? '/' : undefined,
-    // fallback: true,
     linkActiveClass: 'active',
     linkExactActiveClass: 'active-exact'
   },
+
   plugins: [
-    { src: '~plugins/db' }
+    { src: '~plugins/db', ssr: false }
   ],
   /*
   ** Build configuration
@@ -52,6 +52,8 @@ module.exports = {
       config.node = {
         fs: 'empty'
       }
+
+      if (isClient) { config.target = 'electron-renderer' }
 
       // add plugins to stylus
       const stylLoader = config.module.rules.filter(module => String(module.test).indexOf('styl') > -1)[0]

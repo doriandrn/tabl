@@ -113,7 +113,7 @@ import cell from '~/components/cell'
 import progressBar from '~/components/progress'
 
 plugin(require('pouchdb-adapter-memory')) // temoporary tables
-plugin(require('pouchdb-adapter-idb')) // production
+plugin(require('pouchdb-adapter-websql')) // production
 plugin(require('pouchdb-adapter-http')) // pt sync
 
 @Component({
@@ -285,8 +285,9 @@ export default class DataTable extends Vue {
 
     this.db = await create({
       name: `tt/${this.id}`,
-      adapter: this.temporary ? 'memory' : 'idb',
-      ignoreDuplicate: this.temporary ? true : false
+      adapter: this.temporary ? 'memory' : 'websql',
+      ignoreDuplicate: this.temporary ? true : false,
+      multiInstance: false
     })
 
     await Promise.all(Object.keys(cols).map(col => this.db.collection(cols[col])))
