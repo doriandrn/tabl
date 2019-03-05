@@ -132,6 +132,9 @@ section
     padding 32px
     text-align: right;
     background: pal.bg
+
+    a:not(.active):not(:focus):not(:hover)
+      color #aaa
     
     @media print
       display none

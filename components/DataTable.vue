@@ -68,7 +68,7 @@
               progress-bar(:eta=  "status.eta")
               small estimated: {{ status.eta }} seconds
 
-        tr.new(v-if= "writePermissions && !status")
+        tr.new(v-if= "writePermissions && !status.message")
           cell(
             v-for=        "i in columnsLength"
             :key=         "`new${i}`"
@@ -524,14 +524,14 @@ headerfonts()
               transition transform .15s ease
 
         &.sort
-        &:hover
-        &:focus
           input
             opacity 1
             &+span
-              &:after
-                opacity 1
-                visibility visible
+              &:hover
+              &:focus
+                &:after
+                  opacity 1
+                  visibility visible
 
         &.reverse
           input+span:after

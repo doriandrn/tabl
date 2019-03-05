@@ -49,6 +49,8 @@ export default class Cell extends Vue {
 </script>
 
 <style lang="stylus">
+@require '~assets/styles/base'
+
 td
   > div[contenteditable]
     padding 2px 8px
@@ -58,6 +60,6 @@ td
     transition all .1s ease-in-out
 
     &:focus
-      border-color red
+      border-color: pal.secondary
       color black
 </style>
