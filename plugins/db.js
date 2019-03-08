@@ -1,6 +1,10 @@
 import { RxDatabase, RxCollection, create, plugin } from 'rxdb'
 
-plugin(require('pouchdb-adapter-websql'))
+if (process.server) {
+  plugin(require('rxdb/plugins/server'))
+}
+plugin(require('pouchdb-adapter-idb'))
+
 
 const cols = {
   categories: {
@@ -47,11 +51,19 @@ const cols = {
 export default async ({ app }, inject) => {
   const db = await create({
     name: 'tableapp4',
-    adapter: 'websql',
+    adapter: 'idb',
     multiInstance: false
   })
 
   await Promise.all(Object.keys(cols).map(col => db.collection(cols[col])))
+
+  if (process.server) {
+    db.server({
+      path: '/ttdb',
+      port: 51234,
+      cors: true
+    })
+  }
 
   inject('db', db)
 }

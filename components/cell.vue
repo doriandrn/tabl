@@ -53,8 +53,9 @@ export default class Cell extends Vue {
 
 td
   > div[contenteditable]
-    padding 2px 8px
-    line-height 30px
+    padding 4px 8px
+    line-height 20px
+    height 100%
     outline none
     border 1px solid transparent
     transition all .1s ease-in-out

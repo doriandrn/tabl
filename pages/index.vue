@@ -1,7 +1,7 @@
 <template lang="pug">
 //- p(v-if="loading") loading
-section.file-table
-  p homepage stuff, welcome, guides, how to start, shit like dis
+.file-table
+  p homepage stuff, welcome, guides, how to start, shit like dis, drag n drop filez
 
   .dev(v-if="isDev")
     h1 DEV

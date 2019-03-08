@@ -59,7 +59,7 @@
             v-if= "contents.length > 1"
             @click=   "sort(i)"
           ) {{ headersVals[i - 1] }}
-      
+
       tbody
         tr.working(v-if=  "status.message")
           td(:colspan=  "headersVals.length + 1")
@@ -505,6 +505,7 @@ headerfonts()
             user-select none
             white-space nowrap
             headerfonts()
+            color transparent
 
             @media print
               color black
@@ -512,31 +513,38 @@ headerfonts()
 
             &:after
               content ''
-              position relative
+              position absolute
+              right -12px
+              top 50%
+              transform translateY(-50%)
               background url('data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjE4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIxOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxwYXRoIGQ9Ik0wIDBoMjR2MjRIMFYweiIgZmlsbD0ibm9uZSIvPgogICAgPHBhdGggZD0iTTIwIDEybC0xLjQxLTEuNDFMMTMgMTYuMTdWNGgtMnYxMi4xN2wtNS41OC01LjU5TDQgMTJsOCA4IDgtOHoiIGZpbGw9IiM1NTU1NTUiLz4KPC9zdmc+')
               background-size 100%
               width 14px
               height 14px
               display inline-block
               vertical-align middle
+              pointer-events none
               margin-left 10px
               opacity 0
               visibility hidden
               transition transform .15s ease
 
+            &:hover
+              &:after
+                opacity 1
+                visibility visible
+
         &.sort
           input
             opacity 1
             &+span
-              &:hover
-              &:focus
-                &:after
-                  opacity 1
-                  visibility visible
+              &:after
+                opacity 1
+                visibility visible
 
         &.reverse
           input+span:after
-            transform rotate(180deg)
+            transform rotate(180deg) translateY(50%)
     tr
       position relative
 

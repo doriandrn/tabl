@@ -47,11 +47,9 @@ export default class TableAppView extends Vue {
     await this.$db.destroy()
   }
 
-  beforeCreate () {
-    this._subscriber = new Subscriber(this.$db.collections.datasets)
-  }
-
   async mounted () {
+    if (process.server) return
+    this._subscriber = new Subscriber(this.$db.collections.datasets)
     reaction(() => this._subscriber.items, () => {
       console.info('shit updated')
       this.items = this._subscriber.items

@@ -29,7 +29,7 @@ module.exports = {
     src: '~assets/styles/index.styl',
     lang: 'stylus'
   }],
-  mode: 'spa',
+  // mode: 'spa',
   dev: process.env.NODE_ENV === 'DEV',
 
   router: {
@@ -53,7 +53,7 @@ module.exports = {
         fs: 'empty'
       }
 
-      if (isClient) { config.target = 'electron-renderer' }
+      if (isClient && !isDev) { config.target = 'electron-renderer' }
 
       // add plugins to stylus
       const stylLoader = config.module.rules.filter(module => String(module.test).indexOf('styl') > -1)[0]
