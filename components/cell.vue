@@ -9,10 +9,14 @@
 //   )
 //   span(v-else) {{ value }}
 
-td
+td(
+  :class= "{ focusing }"
+  @click= "focus"
+)
   div(
     :contentEditable = "editable"
     @blur = "emitChange($event)"
+    @focus= "focusing = true"
     v-text= "value"
   )
 </template>
@@ -40,10 +44,19 @@ import { Component, Vue } from 'nuxt-property-decorator'
   }
 })
 export default class Cell extends Vue {
-  async emitChange ($event) {
+  focusing = false
+
+  emitChange ($event) {
+    this.focusing = false
     if (this.value === $event.target.textContent) return
-    await this.$emit('change', $event.target.textContent)
-    // $event.target.textContent = ''
+    this.$emit('change', $event.target.textContent)
+  }
+
+  focus () {
+    if (this.focusing) return
+    const ceDiv = this.$el.querySelector('div[contenteditable]')
+    if (!ceDiv) return
+    ceDiv.focus()
   }
 }
 </script>
@@ -52,7 +65,13 @@ export default class Cell extends Vue {
 @require '~assets/styles/base'
 
 td
+  background white
+
+  &.focusing
+    border-color: pal.secondary !important
+
   > div[contenteditable]
+    margin -1px
     padding 4px 8px
     line-height 20px
     height 100%
@@ -61,6 +80,5 @@ td
     transition all .1s ease-in-out
 
     &:focus
-      border-color: pal.secondary
       color black
 </style>

@@ -48,7 +48,10 @@ export default class TableAppView extends Vue {
   }
 
   async mounted () {
-    if (process.server) return
+    if (process.server) {
+      console.log('zerver')
+      return
+    }
     this._subscriber = new Subscriber(this.$db.collections.datasets)
     reaction(() => this._subscriber.items, () => {
       console.info('shit updated')
@@ -134,7 +137,7 @@ section
 
     a:not(.active):not(:focus):not(:hover)
       color #aaa
-    
+
     @media print
       display none
 
@@ -149,7 +152,7 @@ section
 
     nav
       margin-top 20px
-      
+
       a
         display inline-block
         margin 4px

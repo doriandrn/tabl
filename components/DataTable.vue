@@ -38,7 +38,7 @@
 
     table(
       v-else
-      :class=       "{ fetching }"
+      :class=       "{ fetching, compact }"
       cellspacing=  0
     )
       thead.heading
@@ -59,6 +59,11 @@
             v-if= "contents.length > 1"
             @click=   "sort(i)"
           ) {{ headersVals[i - 1] }}
+
+          resize(
+            v-if=     "resizableCols"
+            :height=  "height"
+          )
 
       tbody
         tr.working(v-if=  "status.message")
@@ -111,9 +116,10 @@ import { RxDatabase, RxCollection, create, plugin } from 'rxdb';
 import importer from '~/components/import'
 import cell from '~/components/cell'
 import progressBar from '~/components/progress'
+import resize from '~/components/resizeColBar'
 
 plugin(require('pouchdb-adapter-memory')) // temoporary tables
-plugin(require('pouchdb-adapter-websql')) // production
+plugin(require('pouchdb-adapter-idb')) // production
 plugin(require('pouchdb-adapter-http')) // pt sync
 
 @Component({
@@ -127,6 +133,10 @@ plugin(require('pouchdb-adapter-http')) // pt sync
     columnsLength () {
       const { length } = this.headers
       return this.writePermissions ? length + 1 : length
+    },
+    height () {
+      if (!this.$el) return
+      return this.$el.offsetHeight
     }
   },
   props: {
@@ -165,12 +175,21 @@ plugin(require('pouchdb-adapter-http')) // pt sync
     favorites: {
       type: Boolean,
       default: true
+    },
+    resizableCols: {
+      type: Boolean,
+      default: true
+    },
+    compact: {
+      type: Boolean,
+      default: false
     }
   },
   components: {
-    importer,
     cell,
-    progressBar
+    importer,
+    progressBar,
+    resize
   },
   watch: {
     search: function (val) {
@@ -285,7 +304,7 @@ export default class DataTable extends Vue {
 
     this.db = await create({
       name: `tt/${this.id}`,
-      adapter: this.temporary ? 'memory' : 'websql',
+      adapter: this.temporary ? 'memory' : 'idb',
       ignoreDuplicate: this.temporary ? true : false,
       multiInstance: false
     })
@@ -381,8 +400,11 @@ export default class DataTable extends Vue {
       if (contents) await contents.kill()
       if (headers) await headers.kill()
     }
+    if (this.collections) {
+      this.collections.contents.destroy()
+      this.collections.headers.destroy()
+    }
     if (db) await db.destroy()
-    console.log('DT ended')
   }
 
   get searching () {
@@ -447,13 +469,8 @@ headerfonts()
       margin 0
       position relative
       text-align left
-      border 1px solid rgba(black, .05)
-
-      &:not(:last-child)
-        border-right 0
-
-    td
-      background white
+      border 1px solid transparent
+      border-bottom-color rgba(black, .05)
 
     input
     textarea
@@ -472,7 +489,18 @@ headerfonts()
         outline 0
         box-shadow 0
 
+    &.compact
+      td
+        max-width 20%
+        overflow-x auto
+
+        > [contenteditable]
+          white-space nowrap
+          max-width 100%
+          overflow hidden
+
     th
+      border-top-color red
       &.new
         max-width 80px
         width 80px

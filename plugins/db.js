@@ -2,9 +2,11 @@ import { RxDatabase, RxCollection, create, plugin } from 'rxdb'
 
 if (process.server) {
   plugin(require('rxdb/plugins/server'))
+  plugin(require('pouchdb-adapter-memory'))
+} else {
+  console.log('client!')
+  plugin(require('pouchdb-adapter-http'))
 }
-plugin(require('pouchdb-adapter-idb'))
-
 
 const cols = {
   categories: {
@@ -49,21 +51,31 @@ const cols = {
 }
 
 export default async ({ app }, inject) => {
+  const PATH = '/ttdb'
+  const PORT = 51337
+
   const db = await create({
     name: 'tableapp4',
-    adapter: 'idb',
+    adapter: 'memory',
     multiInstance: false
   })
 
-  await Promise.all(Object.keys(cols).map(col => db.collection(cols[col])))
+  await Promise.all(Object.keys(cols).map(async col => {
+    await db.collection(cols[col])
+    if (!process.server) {
+      db[col].sync({
+        remote: `http://localhost:${PORT}${PATH}/${col}`
+      });
+    }
+  }))
 
   if (process.server) {
     db.server({
-      path: '/ttdb',
-      port: 51234,
+      path: PATH,
+      port: PORT,
       cors: true
     })
+  } else {
+    inject('db', db)
   }
-
-  inject('db', db)
 }
