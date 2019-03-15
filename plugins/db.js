@@ -1,12 +1,5 @@
-import { RxDatabase, RxCollection, create, plugin } from 'rxdb'
-
-if (process.server) {
-  plugin(require('rxdb/plugins/server'))
-  plugin(require('pouchdb-adapter-memory'))
-} else {
-  console.log('client!')
-  plugin(require('pouchdb-adapter-http'))
-}
+import * as rxdb from 'rxdb'
+import { TSExternalModuleReference } from 'babel-types';
 
 const cols = {
   categories: {
@@ -54,20 +47,34 @@ export default async ({ app }, inject) => {
   const PATH = '/ttdb'
   const PORT = 51337
 
-  const db = await create({
-    name: 'tableapp4',
-    adapter: 'memory',
+  let db
+
+  if (process.server) {
+    rxdb.plugin(require('pouchdb-adapter-leveldb'))
+    rxdb.plugin(require('rxdb/plugins/server'))
+  } else {
+    rxdb.plugin(require('pouchdb-adapter-http'))
+  }
+
+  db = await rxdb.create({
+    name: `dist/tapp`,
+    adapter: process.server ? 'leveldb' : 'http',
     multiInstance: false
   })
 
   await Promise.all(Object.keys(cols).map(async col => {
     await db.collection(cols[col])
     if (!process.server) {
-      db[col].sync({
-        remote: `http://localhost:${PORT}${PATH}/${col}`
-      });
+      const remote = `http://${window.location.hostname}:${PORT}${PATH}/${col}`
+      db[col].sync({ remote, options: {
+        live: true,
+        retry: TSExternalModuleReference
+      } })
     }
   }))
+
+  // else
+  inject('db', db)
 
   if (process.server) {
     db.server({
@@ -75,7 +82,5 @@ export default async ({ app }, inject) => {
       port: PORT,
       cors: true
     })
-  } else {
-    inject('db', db)
   }
 }

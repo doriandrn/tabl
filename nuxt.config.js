@@ -38,7 +38,7 @@ module.exports = {
   },
 
   plugins: [
-    { src: '~plugins/db' }
+    { src: '~plugins/db', ssr: true }
   ],
   /*
   ** Build configuration

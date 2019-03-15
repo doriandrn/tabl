@@ -43,13 +43,16 @@ export default class TableAppView extends Vue {
   }
 
   async beforeDestroy () {
-    this._subscriber.kill()
+    // if (process && process.server) {
+    //   return
+    // }
+
+    if (!process.server) this._subscriber.kill()
     await this.$db.destroy()
   }
 
   async mounted () {
-    if (process.server) {
-      console.log('zerver')
+    if (process && process.server) {
       return
     }
     this._subscriber = new Subscriber(this.$db.collections.datasets)

@@ -31,8 +31,8 @@ const app = electron.app
 const newWin = () => {
 	win = new electron.BrowserWindow({
     icon: path.join(__dirname, 'static/icon.png'),
-    width: 800,
-    height: 600,
+    width: 910,
+    height: 630,
     frame: false
 	})
 

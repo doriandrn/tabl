@@ -34,8 +34,6 @@ export default class Zable extends Vue {
 </script>
 
 <style lang="stylus">
-
-
 .meta
   font-size 13px
   color #666

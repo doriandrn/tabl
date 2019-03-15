@@ -1,15 +1,15 @@
 <template lang="pug">
 .yolo
-  data-table(
-    v-if=         "doc && doc._id === id"
-    :id=          "id"
-    :temporary=   "false"
-    :writePermissions = "true"
-    @rename=      "title = $event"
-    :title=       "doc.title"
-    :totalCount=  "total"
-    @newTotal=    "total = $event"
-  ) {{ total }}
+  //- data-table(
+  //-   v-if=         "doc && doc._id === id"
+  //-   :id=          "id"
+  //-   :temporary=   "false"
+  //-   :writePermissions = "true"
+  //-   @rename=      "title = $event"
+  //-   :title=       "doc.title"
+  //-   :totalCount=  "total"
+  //-   @newTotal=    "total = $event"
+  //- ) {{ total }}
 </template>
 
 <script lang="ts">
