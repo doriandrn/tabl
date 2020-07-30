@@ -3,6 +3,12 @@ const stylusPlugins = [
   require('rupture')()
 ]
 
+var path = require('path')
+
+function resolve(dir) {
+  return path.join(__dirname, '.', dir)
+}
+
 module.exports = {
   /*
   ** Headers of the page
@@ -29,7 +35,7 @@ module.exports = {
     src: '~assets/styles/index.styl',
     lang: 'stylus'
   }],
-  // mode: 'spa',
+  mode: 'spa',
   dev: process.env.NODE_ENV === 'DEV',
 
   router: {
@@ -38,12 +44,27 @@ module.exports = {
   },
 
   plugins: [
-    { src: '~plugins/db', ssr: true }
+    '~plugins/db'
   ],
+  hooks: {
+    listen: (nuxt) => {
+      nuxt.db = 'pula'
+      console.log('NUXT LISTENITNITNTINTIT', nuxt.db)
+    }
+  },
   /*
   ** Build configuration
   */
+ buildModules: [
+    ['@nuxt/typescript-build']
+  ],
   build: {
+    babel: {
+      plugins: [
+        ["@babel/plugin-proposal-decorators", { legacy: true }],
+        ["@babel/plugin-proposal-class-properties", { loose: true }]
+      ]
+    },
 
     /*
     ** Run ESLint on save
@@ -52,6 +73,16 @@ module.exports = {
       config.node = {
         fs: 'empty'
       }
+
+      // Extend aliases
+      Object.assign(config.resolve.alias, {
+        c: resolve('components'),
+        styles: resolve('assets/styles'),
+        helpers: resolve('helpers'),
+
+        widgets: resolve('components/widgets'),
+        form: resolve('components/form'),
+      })
 
       if (isClient && !isDev) { config.target = 'electron-renderer' }
 

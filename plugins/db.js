@@ -1,5 +1,4 @@
 import * as rxdb from 'rxdb'
-import { TSExternalModuleReference } from 'babel-types';
 
 const cols = {
   categories: {
@@ -43,11 +42,14 @@ const cols = {
   }
 }
 
-export default async ({ app }, inject) => {
-  const PATH = '/ttdb'
-  const PORT = 51337
+let db
 
-  let db
+const PATH = '/ttdb'
+const PORT = 51337
+
+
+export default async ({ app }, inject) => {
+  if (db) return
 
   if (process.server) {
     rxdb.plugin(require('pouchdb-adapter-leveldb'))
@@ -68,7 +70,7 @@ export default async ({ app }, inject) => {
       const remote = `http://${window.location.hostname}:${PORT}${PATH}/${col}`
       db[col].sync({ remote, options: {
         live: true,
-        retry: TSExternalModuleReference
+        retry: true
       } })
     }
   }))

@@ -14,7 +14,7 @@
 
 <script lang="ts">
 import { Component, Vue } from 'nuxt-property-decorator'
-import DataTable from '~/components/DataTable'
+import DataTable from 'c/DataTable'
 
 const env = process.env.NODE_ENV
 
